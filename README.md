@@ -6,7 +6,7 @@ It is read-only unless you turn writes on.
 
 ## What you need
 
-- Node.js 20 or newer (`node --version`).
+- Node.js 20.10 or newer (`node --version`).
 - A GPX API token (`gpx_live_…`). An account admin can create one in the GPX app under **Settings › API Access**. If your account has no API Access page, ask GPX support to turn on API access.
 
 ## Setup

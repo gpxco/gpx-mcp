@@ -12,10 +12,24 @@ export type ToolResult = {
   isError?: boolean;
 };
 
+const TIMEOUT_MS = 30_000;
+const LOOPBACK = ['localhost', '127.0.0.1', '[::1]'];
+
 const text = (value: string, isError = false): ToolResult => ({
   content: [{ type: 'text', text: value }],
   ...(isError ? { isError: true } : {}),
 });
+
+export function baseUrlProblem(baseUrl: string): string | undefined {
+  let url: URL;
+  try {
+    url = new URL(baseUrl);
+  } catch {
+    return `GPX_API_BASE_URL is not a valid URL: ${baseUrl}`;
+  }
+  if (url.protocol === 'https:' || (url.protocol === 'http:' && LOOPBACK.includes(url.hostname))) return undefined;
+  return `GPX_API_BASE_URL must use https, so the token is never sent in clear text (http is allowed only for localhost): ${baseUrl}`;
+}
 
 export function buildRequest(op: Operation, args: Record<string, unknown>, baseUrl: string) {
   const path = op.path.replace(/\{(\w+)\}/g, (_, field: string) => {
@@ -79,6 +93,8 @@ export async function callOperation(op: Operation, args: Record<string, unknown>
   if (!op.readOnly && !config.allowWrites) {
     return text(`${op.name} changes data, and write tools are off. Set GPX_MCP_ALLOW_WRITES=1 to enable them.`, true);
   }
+  const urlProblem = baseUrlProblem(config.baseUrl);
+  if (urlProblem) return text(urlProblem, true);
 
   let request;
   try {
@@ -91,6 +107,9 @@ export async function callOperation(op: Operation, args: Record<string, unknown>
   try {
     response = await fetch(request.url, {
       method: op.method,
+      // A redirect could carry the bearer token to another host.
+      redirect: 'error',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
       headers: {
         Authorization: `Bearer ${config.token}`,
         Accept: 'application/json',
@@ -100,6 +119,9 @@ export async function callOperation(op: Operation, args: Record<string, unknown>
       body: request.body,
     });
   } catch (error) {
+    if ((error as Error).name === 'TimeoutError') {
+      return text(`The GPX API did not answer within ${TIMEOUT_MS / 1000} seconds. Try again, or narrow the request.`, true);
+    }
     return text(`Could not reach the GPX API at ${config.baseUrl}: ${(error as Error).message}`, true);
   }
 

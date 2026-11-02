@@ -19,13 +19,20 @@ Releases are published to npm as [`@gpxco/mcp`](https://www.npmjs.com/package/@g
 
    Read the diff of `src/generated/operations.json`. A renamed or removed tool breaks anyone whose assistant relies on it, so treat that as a breaking change.
 
-2. Bump the version: `npm version patch|minor|major --no-git-tag-version`. Use a minor bump for new tools, a major bump for renamed or removed tools, and a patch bump for anything else.
+2. Bump the version without a commit or tag, for example:
+
+   ```bash
+   npm version minor --no-git-tag-version
+   ```
+
+   Use `minor` for new tools, `major` for renamed or removed tools, and `patch` for anything else.
 3. Open a PR with the spec, the generated file and the version bump, then merge it to `main`.
-4. On GitHub, create a release from `main` with tag `v<version>` (for example `v0.2.0`), and write the notes.
-5. Publishing the release runs `.github/workflows/release.yml`. It checks that the tag matches `package.json`, runs the tests and publishes with provenance.
+4. On GitHub, create a release from `main` with tag `v<version>` (for example `v0.2.0`), and write the notes. Tick **Set as a pre-release** for a version you want to test first: it is published under the `next` dist-tag (`npx -y @gpxco/mcp@next`), and `npx -y @gpxco/mcp` keeps installing the last full release.
+5. Publishing the release runs `.github/workflows/release.yml`. It checks that the tag matches `package.json`, runs the checks and publishes with provenance.
 6. Check it: `npx -y @gpxco/mcp@<version>` should start and wait on stdin. Stop it with Ctrl-C.
 
 ## Setup, once
 
 - An npm organization named `gpxco`, owned by GPX, with at least two owners.
-- An npm automation token with publish rights on `@gpxco`, stored as the `NPM_TOKEN` secret on this repository.
+- The package published once by hand by an owner (`npm publish` from a clean checkout of `main`), because npm can only attach a trusted publisher to a package that exists.
+- On npmjs.com, under the package's **Settings › Trusted publishing**, a GitHub Actions publisher: organization `gpxco`, repository `gpx-mcp`, workflow `release.yml`. The workflow then publishes over OIDC, so there is no npm token to store, expire or rotate.

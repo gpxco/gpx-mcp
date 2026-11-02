@@ -84,6 +84,32 @@ describe('callOperation', () => {
     expect(result.content[0].text).toContain('Could not reach the GPX API');
   });
 
+  it('refuses to send the token over plain http', async () => {
+    const fetch = respond(200, '{}');
+    const result = await callOperation(op('list_devices'), {}, { ...config, baseUrl: 'http://api.gpx.co' });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('must use https');
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('allows plain http to localhost', async () => {
+    respond(200, '{"data":[]}');
+    const result = await callOperation(op('list_devices'), {}, { ...config, baseUrl: 'http://localhost:8000' });
+    expect(result.isError).toBeUndefined();
+  });
+
+  it('never follows a redirect and gives up after a timeout', async () => {
+    const fetch = respond(200, '{}');
+    await callOperation(op('list_devices'), {}, config);
+    expect(fetch.mock.calls[0][1]).toMatchObject({ redirect: 'error', signal: expect.any(AbortSignal) });
+  });
+
+  it('reports a timeout in plain words', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new DOMException('aborted', 'TimeoutError'));
+    const result = await callOperation(op('list_devices'), {}, config);
+    expect(result.content[0].text).toContain('did not answer within 30 seconds');
+  });
+
   it('confirms a 204', async () => {
     respond(204, '');
     const result = await callOperation(op('delete_a_geofence'), { geofenceId: 3 }, { ...config, allowWrites: true });

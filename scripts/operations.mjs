@@ -69,7 +69,13 @@ export function buildOperations(specText) {
         if (isRequired) required.push(field);
       };
 
+      // An operation-level parameter replaces a path-level one with the same name and location.
+      const parameters = new Map();
       for (const param of [...(item.parameters ?? []), ...(op.parameters ?? [])]) {
+        parameters.set(`${param.in}:${param.name}`, param);
+      }
+
+      for (const param of parameters.values()) {
         if (param.in !== 'path' && param.in !== 'query') {
           problems.push(`${where}: unsupported parameter location "${param.in}" for ${param.name}`);
           continue;
