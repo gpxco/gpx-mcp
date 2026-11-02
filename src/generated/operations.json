@@ -248,7 +248,7 @@
         },
         "tracker_sharing": {
           "type": "string",
-          "description": "`public` makes the device viewable on its sharing link, `private` hides it, `inherit` follows the account default.",
+          "description": "`public` makes the device viewable on its sharing link while the account allows sharing (`tracker_sharing_enabled`), `private` hides it, `inherit` follows the account default.",
           "enum": [
             "inherit",
             "public",

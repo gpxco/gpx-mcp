@@ -424,7 +424,7 @@ paths:
                   example: 25000
                 tracker_sharing:
                   type: string
-                  description: '`public` makes the device viewable on its sharing link, `private` hides it, `inherit` follows the account default.'
+                  description: '`public` makes the device viewable on its sharing link while the account allows sharing (`tracker_sharing_enabled`), `private` hides it, `inherit` follows the account default.'
                   example: inherit
                   enum:
                     - inherit
@@ -2042,6 +2042,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
         429:
           description: 'The request could not be processed.'
           content:
@@ -2361,6 +2367,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
         429:
           description: 'The request could not be processed.'
           content:
@@ -2499,6 +2511,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicApiError'
+        409:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
         422:
           description: 'The request could not be processed.'
           content:
@@ -2631,6 +2649,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/PublicApiError'
         404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        409:
           description: 'The request could not be processed.'
           content:
             application/json:
