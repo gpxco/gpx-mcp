@@ -21,4 +21,4 @@ npm run prepare-shots -- /path/to/raw/shots
 
 The "Token created" screenshot shows a real token. `prepare-shots` paints over it before the file reaches `public/shots/`, and the video draws a masked token in its place, so never copy that raw screenshot into this folder by hand. Revoke the token used for the recording afterwards.
 
-The tracker names in the shots (Delivery Van 7, Forklift 3, Reefer Trailer 12, Pallet 42) were set for the recording on a GPX test account.
+The tracker names in the shots (Delivery Van 7, Forklift 3, Reefer Trailer 12, Pallet 42) were set for the recording and restored afterwards.
