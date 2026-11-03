@@ -1,0 +1,3272 @@
+openapi: 3.0.3
+info:
+  title: 'GPX Public API v1'
+  description: 'The GPX public API. Every endpoint lives under https://api.gpx.co/v1.'
+  version: 1.0.0
+servers:
+  -
+    url: 'https://api.gpx.co'
+    description: Production
+  -
+    url: 'https://api.staging.gpx.co'
+    description: Staging
+paths:
+  /v1/account:
+    get:
+      summary: 'Show the authenticated account'
+      operationId: showTheAuthenticatedAccount
+      description: "Returns the account the presented token belongs to, so it also serves as a\ncredential check."
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Account
+    patch:
+      summary: 'Update the authenticated account'
+      operationId: updateTheAuthenticatedAccount
+      description: "Accepts name and the customer-writable settings. Turning tracker_sharing_enabled on\nmakes every device set to public — or inheriting a public default — reachable on an\nunauthenticated URL."
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Account
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: jcqqqpmcouwcvd
+                settings:
+                  type: object
+                  description: ''
+                  example: null
+                  properties:
+                    tracker_sharing_enabled:
+                      type: boolean
+                      description: ''
+                      example: true
+                    tracker_sharing_default:
+                      type: string
+                      description: ''
+                      example: public
+                      enum:
+                        - public
+                        - private
+                    shareable_link_logo_mode:
+                      type: string
+                      description: ''
+                      example: default
+                      enum:
+                        - default
+                        - none
+                        - custom
+                    shareable_link_logo_file_id:
+                      type: integer
+                      description: ''
+                      example: 18
+  /v1/devices:
+    get:
+      summary: 'List devices'
+      operationId: listDevices
+      description: 'Filterable by name, serial, status and model.'
+      parameters:
+        -
+          in: query
+          name: name
+          description: 'Partial match on the device name. Must not be greater than 255 characters.'
+          example: 'Truck 7'
+          required: false
+          schema:
+            type: string
+            description: 'Partial match on the device name. Must not be greater than 255 characters.'
+            example: 'Truck 7'
+        -
+          in: query
+          name: serial
+          description: 'Exact match. A serial is looked up, not searched. Must not be greater than 255 characters.'
+          example: ABC123
+          required: false
+          schema:
+            type: string
+            description: 'Exact match. A serial is looked up, not searched. Must not be greater than 255 characters.'
+            example: ABC123
+        -
+          in: query
+          name: status
+          description: 'A device lifecycle state.'
+          example:
+            - active
+          required: false
+          schema:
+            type: array
+            description: 'A device lifecycle state.'
+            example:
+              - active
+            items:
+              type: string
+              enum:
+                - active
+                - provisioned
+                - hidden
+                - archived
+                - replaced
+        -
+          in: query
+          name: model
+          description: 'A device model. Must not be greater than 255 characters.'
+          example:
+            - nt08
+          required: false
+          schema:
+            type: array
+            description: 'A device model. Must not be greater than 255 characters.'
+            example:
+              - nt08
+            items:
+              type: string
+        -
+          in: query
+          name: include
+          description: 'Include telemetry and/or last_position. Comma-separate values. Omitted by default because both are cross-store reads.'
+          example:
+            - 'telemetry,last_position'
+          required: false
+          schema:
+            type: array
+            description: 'Include telemetry and/or last_position. Comma-separate values. Omitted by default because both are cross-store reads.'
+            example:
+              - 'telemetry,last_position'
+            items:
+              type: string
+              enum:
+                - telemetry
+                - last_position
+        -
+          in: query
+          name: sort
+          description: 'Sort column, prefixed with - for descending.'
+          example: '-created_at'
+          required: false
+          schema:
+            type: string
+            description: 'Sort column, prefixed with - for descending.'
+            example: '-created_at'
+            enum:
+              - name
+              - '-name'
+              - serial
+              - '-serial'
+              - status
+              - '-status'
+              - created_at
+              - '-created_at'
+              - updated_at
+              - '-updated_at'
+        -
+          in: query
+          name: per_page
+          description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+          example: 50
+          required: false
+          schema:
+            type: integer
+            description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+            example: 50
+        -
+          in: query
+          name: page
+          description: 'Page number, starting at 1. Must be at least 1.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number, starting at 1. Must be at least 1.'
+            example: 1
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Devices
+  '/v1/devices/{deviceId}':
+    get:
+      summary: 'Show a device'
+      operationId: showADevice
+      description: ''
+      parameters:
+        -
+          in: query
+          name: include
+          description: 'Include telemetry and/or last_position. Comma-separate values. Omitted by default because both are cross-store reads.'
+          example:
+            - 'telemetry,last_position'
+          required: false
+          schema:
+            type: array
+            description: 'Include telemetry and/or last_position. Comma-separate values. Omitted by default because both are cross-store reads.'
+            example:
+              - 'telemetry,last_position'
+            items:
+              type: string
+              enum:
+                - telemetry
+                - last_position
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Devices
+    patch:
+      summary: 'Update a device'
+      operationId: updateADevice
+      description: 'Accepts name, note, asset_value, tracker_sharing and container_type_id.'
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Devices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: tdqdrkutsejyeeknigkh
+                note:
+                  type: string
+                  description: ''
+                  example: sed
+                asset_value:
+                  type: integer
+                  description: 'Must be at least 0.'
+                  example: 51
+                tracker_sharing:
+                  type: string
+                  description: ''
+                  example: private
+                  enum:
+                    - inherit
+                    - public
+                    - private
+                container_type_id:
+                  type: integer
+                  description: ''
+                  example: 18
+              required:
+                - name
+                - tracker_sharing
+    parameters:
+      -
+        in: path
+        name: deviceId
+        description: ''
+        example: 6
+        required: true
+        schema:
+          type: integer
+  '/v1/devices/{deviceId}/positions':
+    get:
+      summary: "List a device's positions"
+      operationId: listADevicesPositions
+      description: ''
+      parameters:
+        -
+          in: query
+          name: location_after
+          description: 'Start of the window on the time the device recorded the fix. Defaults to 24 hours before location_before. Must be a valid date.'
+          example: '2026-07-02T00:00:00Z'
+          required: false
+          schema:
+            type: string
+            description: 'Start of the window on the time the device recorded the fix. Defaults to 24 hours before location_before. Must be a valid date.'
+            example: '2026-07-02T00:00:00Z'
+        -
+          in: query
+          name: location_before
+          description: 'End of the window on the time the device recorded the fix. Defaults to now. Must be a valid date. Must be a date after or equal to <code>location_after</code>.'
+          example: '2026-07-03T00:00:00Z'
+          required: false
+          schema:
+            type: string
+            description: 'End of the window on the time the device recorded the fix. Defaults to now. Must be a valid date. Must be a date after or equal to <code>location_after</code>.'
+            example: '2026-07-03T00:00:00Z'
+        -
+          in: query
+          name: sort
+          description: 'Sort on location_at, prefixed with - for descending.'
+          example: '-location_at'
+          required: false
+          schema:
+            type: string
+            description: 'Sort on location_at, prefixed with - for descending.'
+            example: '-location_at'
+            enum:
+              - location_at
+              - '-location_at'
+        -
+          in: query
+          name: per_page
+          description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+          example: 50
+          required: false
+          schema:
+            type: integer
+            description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+            example: 50
+        -
+          in: query
+          name: page
+          description: 'Page number, starting at 1. Must be at least 1.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number, starting at 1. Must be at least 1.'
+            example: 1
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Devices
+    parameters:
+      -
+        in: path
+        name: deviceId
+        description: ''
+        example: 11
+        required: true
+        schema:
+          type: integer
+  '/v1/devices/{deviceId}/events':
+    get:
+      summary: "List a device's events"
+      operationId: listADevicesEvents
+      description: 'Same feed as GET /events, scoped to one device. Windowed on event_at.'
+      parameters:
+        -
+          in: query
+          name: event_after
+          description: 'Start of the window on event_at. Defaults to 24 hours before event_before when both are omitted, or 30 days before event_before when only event_before is set. Must be a valid date.'
+          example: '2026-07-02T00:00:00Z'
+          required: false
+          schema:
+            type: string
+            description: 'Start of the window on event_at. Defaults to 24 hours before event_before when both are omitted, or 30 days before event_before when only event_before is set. Must be a valid date.'
+            example: '2026-07-02T00:00:00Z'
+        -
+          in: query
+          name: event_before
+          description: 'End of the window on event_at. Defaults to now when omitted, or 30 days after event_after when only event_after is set. Must be a valid date. Must be a date after or equal to <code>event_after</code>.'
+          example: '2026-07-03T00:00:00Z'
+          required: false
+          schema:
+            type: string
+            description: 'End of the window on event_at. Defaults to now when omitted, or 30 days after event_after when only event_after is set. Must be a valid date. Must be a date after or equal to <code>event_after</code>.'
+            example: '2026-07-03T00:00:00Z'
+        -
+          in: query
+          name: sort
+          description: 'Sort on event_at. Prefix with - for descending. Defaults to -event_at.'
+          example: '-event_at'
+          required: false
+          schema:
+            type: string
+            description: 'Sort on event_at. Prefix with - for descending. Defaults to -event_at.'
+            example: '-event_at'
+            enum:
+              - event_at
+              - '-event_at'
+        -
+          in: query
+          name: per_page
+          description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+          example: 50
+          required: false
+          schema:
+            type: integer
+            description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+            example: 50
+        -
+          in: query
+          name: page
+          description: 'Page number, starting at 1. Must be at least 1.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number, starting at 1. Must be at least 1.'
+            example: 1
+        -
+          in: query
+          name: geofence_id
+          description: 'Restrict to events for one geofence. Must be at least 1.'
+          example: 5
+          required: false
+          schema:
+            type: integer
+            description: 'Restrict to events for one geofence. Must be at least 1.'
+            example: 5
+        -
+          in: query
+          name: shipment_id
+          description: 'Restrict to events for one shipment. Must be at least 1.'
+          example: 7
+          required: false
+          schema:
+            type: integer
+            description: 'Restrict to events for one shipment. Must be at least 1.'
+            example: 7
+        -
+          in: query
+          name: event_type
+          description: 'Event type (e.g. geofence-exit, alarm-sos, shipment-late). Repeatable. Must not be greater than 128 characters.'
+          example:
+            - geofence-exit
+          required: false
+          schema:
+            type: array
+            description: 'Event type (e.g. geofence-exit, alarm-sos, shipment-late). Repeatable. Must not be greater than 128 characters.'
+            example:
+              - geofence-exit
+            items:
+              type: string
+      responses: {  }
+      tags:
+        - Devices
+    parameters:
+      -
+        in: path
+        name: deviceId
+        description: ''
+        example: 12
+        required: true
+        schema:
+          type: integer
+  /v1/geofences:
+    get:
+      summary: 'List geofences'
+      operationId: listGeofences
+      description: 'Filterable by place_type and ownership_type, each multi-value.'
+      parameters:
+        -
+          in: query
+          name: place_type
+          description: "A place type slug, standard or one of the account's own. A standard slug also matches its custom types. Up to 100 values."
+          example:
+            - warehouse
+          required: false
+          schema:
+            type: array
+            description: "A place type slug, standard or one of the account's own. A standard slug also matches its custom types. Up to 100 values."
+            example:
+              - warehouse
+            items:
+              type: string
+        -
+          in: query
+          name: ownership_type
+          description: 'An ownership type.'
+          example:
+            - owned
+          required: false
+          schema:
+            type: array
+            description: 'An ownership type.'
+            example:
+              - owned
+            items:
+              type: string
+              enum:
+                - owned
+                - customer
+                - supplier
+                - 3pl
+                - public
+        -
+          in: query
+          name: search
+          description: 'Partial match on the geofence name. Must not be greater than 255 characters.'
+          example: Depot
+          required: false
+          schema:
+            type: string
+            description: 'Partial match on the geofence name. Must not be greater than 255 characters.'
+            example: Depot
+        -
+          in: query
+          name: sort
+          description: 'Sort column, prefixed with - for descending.'
+          example: '-created_at'
+          required: false
+          schema:
+            type: string
+            description: 'Sort column, prefixed with - for descending.'
+            example: '-created_at'
+            enum:
+              - name
+              - '-name'
+              - created_at
+              - '-created_at'
+              - updated_at
+              - '-updated_at'
+        -
+          in: query
+          name: per_page
+          description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+          example: 50
+          required: false
+          schema:
+            type: integer
+            description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+            example: 50
+        -
+          in: query
+          name: page
+          description: 'Page number, starting at 1. Must be at least 1.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number, starting at 1. Must be at least 1.'
+            example: 1
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Geofences
+    post:
+      summary: 'Create a geofence'
+      operationId: createAGeofence
+      description: "Requires a location: latitude + longitude + radius_meters, or a geojson\nPolygon / MultiPolygon whose rings are closed."
+      parameters: []
+      responses:
+        201:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Geofences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                  description: 'Must not be greater than 1000 characters.'
+                  example: uoqeg
+                alerting:
+                  type: boolean
+                  description: ''
+                  example: false
+                latitude:
+                  type: number
+                  description: 'Must be at least -90. Must not be greater than 90.'
+                  example: 25
+                longitude:
+                  type: number
+                  description: 'Must be at least -180. Must not be greater than 180.'
+                  example: 11
+                radius_meters:
+                  type: number
+                  description: 'Must be at least 0.'
+                  example: 41
+                geojson:
+                  type: object
+                  description: ''
+                  example: null
+                  properties:
+                    type:
+                      type: string
+                      description: 'This field is required when <code>geojson</code> is present.'
+                      example: voluptates
+                min_assets:
+                  type: integer
+                  description: 'Must be at least 0. Must not be greater than 500.'
+                  example: 15
+                max_assets:
+                  type: integer
+                  description: 'Must be at least 0. Must not be greater than 500.'
+                  example: 25
+                allowable_dwell_seconds:
+                  type: integer
+                  description: 'Must be at least 0. Must not be greater than 43200000.'
+                  example: 23
+                place_type:
+                  type: string
+                  description: "A place type slug, standard or one of the account's own custom types. See the place types endpoints."
+                  example: warehouse
+                ownership_type:
+                  type: string
+                  description: ''
+                  example: public
+                  enum:
+                    - owned
+                    - customer
+                    - supplier
+                    - 3pl
+                    - public
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: fuzmestyzhifxjj
+              required:
+                - name
+  '/v1/geofences/{geofenceId}':
+    get:
+      summary: 'Show a geofence'
+      operationId: showAGeofence
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Geofences
+    patch:
+      summary: 'Update a geofence'
+      operationId: updateAGeofence
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Geofences
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                  description: 'Must not be greater than 1000 characters.'
+                  example: gwunxufomzs
+                alerting:
+                  type: boolean
+                  description: ''
+                  example: true
+                latitude:
+                  type: number
+                  description: 'Must be at least -90. Must not be greater than 90.'
+                  example: 18
+                longitude:
+                  type: number
+                  description: 'Must be at least -180. Must not be greater than 180.'
+                  example: 9
+                radius_meters:
+                  type: number
+                  description: 'Must be at least 0.'
+                  example: 41
+                geojson:
+                  type: object
+                  description: ''
+                  example: null
+                  properties:
+                    type:
+                      type: string
+                      description: 'This field is required when <code>geojson</code> is present.'
+                      example: sit
+                min_assets:
+                  type: integer
+                  description: 'Must be at least 0. Must not be greater than 500.'
+                  example: 14
+                max_assets:
+                  type: integer
+                  description: 'Must be at least 0. Must not be greater than 500.'
+                  example: 20
+                allowable_dwell_seconds:
+                  type: integer
+                  description: 'Must be at least 0. Must not be greater than 43200000.'
+                  example: 12
+                place_type:
+                  type: string
+                  description: "A place type slug, standard or one of the account's own custom types. See the place types endpoints."
+                  example: warehouse
+                ownership_type:
+                  type: string
+                  description: ''
+                  example: 3pl
+                  enum:
+                    - owned
+                    - customer
+                    - supplier
+                    - 3pl
+                    - public
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: wuvlwqnyabfxpcfnhopyoscs
+    delete:
+      summary: 'Delete a geofence'
+      operationId: deleteAGeofence
+      description: ''
+      parameters: []
+      responses:
+        204:
+          description: 'Deleted successfully.'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Geofences
+    parameters:
+      -
+        in: path
+        name: geofenceId
+        description: ''
+        example: 14
+        required: true
+        schema:
+          type: integer
+  /v1/shipments:
+    get:
+      summary: 'List shipments'
+      operationId: listShipments
+      description: ''
+      parameters:
+        -
+          in: query
+          name: status
+          description: 'Display status. Comma-separate for several.'
+          example: 'active,booked'
+          required: false
+          schema:
+            type: string
+            description: 'Display status. Comma-separate for several.'
+            example: 'active,booked'
+        -
+          in: query
+          name: carrier
+          description: 'Exact carrier name. Comma-separate for several.'
+          example: 'Acme Freight'
+          required: false
+          schema:
+            type: string
+            description: 'Exact carrier name. Comma-separate for several.'
+            example: 'Acme Freight'
+        -
+          in: query
+          name: origin_geofence_id
+          description: 'Only shipments departing this geofence.'
+          example: 42
+          required: false
+          schema:
+            type: integer
+            description: 'Only shipments departing this geofence.'
+            example: 42
+        -
+          in: query
+          name: destination_geofence_id
+          description: 'Only shipments arriving at this geofence.'
+          example: 43
+          required: false
+          schema:
+            type: integer
+            description: 'Only shipments arriving at this geofence.'
+            example: 43
+        -
+          in: query
+          name: pickup_after
+          description: 'Earliest pickup — actual once departed, otherwise scheduled. Must be a valid date.'
+          example: '2026-07-01'
+          required: false
+          schema:
+            type: string
+            description: 'Earliest pickup — actual once departed, otherwise scheduled. Must be a valid date.'
+            example: '2026-07-01'
+        -
+          in: query
+          name: pickup_before
+          description: 'Latest pickup — actual once departed, otherwise scheduled. Must be a valid date. Must be a date after or equal to <code>pickup_after</code>.'
+          example: '2026-07-31'
+          required: false
+          schema:
+            type: string
+            description: 'Latest pickup — actual once departed, otherwise scheduled. Must be a valid date. Must be a date after or equal to <code>pickup_after</code>.'
+            example: '2026-07-31'
+        -
+          in: query
+          name: delivery_after
+          description: 'Earliest delivery — actual once delivered, otherwise scheduled. Must be a valid date.'
+          example: '2026-07-01'
+          required: false
+          schema:
+            type: string
+            description: 'Earliest delivery — actual once delivered, otherwise scheduled. Must be a valid date.'
+            example: '2026-07-01'
+        -
+          in: query
+          name: delivery_before
+          description: 'Latest delivery — actual once delivered, otherwise scheduled. Must be a valid date. Must be a date after or equal to <code>delivery_after</code>.'
+          example: '2026-07-31'
+          required: false
+          schema:
+            type: string
+            description: 'Latest delivery — actual once delivered, otherwise scheduled. Must be a valid date. Must be a date after or equal to <code>delivery_after</code>.'
+            example: '2026-07-31'
+        -
+          in: query
+          name: search
+          description: 'Partial match on the shipment name or carrier. Must not be greater than 255 characters.'
+          example: PO-1183
+          required: false
+          schema:
+            type: string
+            description: 'Partial match on the shipment name or carrier. Must not be greater than 255 characters.'
+            example: PO-1183
+        -
+          in: query
+          name: sort
+          description: 'Sort column, prefixed with - for descending.'
+          example: '-updated_at'
+          required: false
+          schema:
+            type: string
+            description: 'Sort column, prefixed with - for descending.'
+            example: '-updated_at'
+            enum:
+              - name
+              - carrier
+              - start_at
+              - end_at
+              - updated_at
+              - created_at
+              - '-name'
+              - '-carrier'
+              - '-start_at'
+              - '-end_at'
+              - '-updated_at'
+              - '-created_at'
+        -
+          in: query
+          name: per_page
+          description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+          example: 50
+          required: false
+          schema:
+            type: integer
+            description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+            example: 50
+        -
+          in: query
+          name: page
+          description: 'Page number, starting at 1. Must be at least 1.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number, starting at 1. Must be at least 1.'
+            example: 1
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    post:
+      summary: 'Create a shipment'
+      operationId: createAShipment
+      description: ''
+      parameters: []
+      responses:
+        201:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: mnxemjszumxk
+                carrier:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: wvxbxlssraeptmculjsgf
+                notes:
+                  type: string
+                  description: ''
+                  example: in
+                asset_value:
+                  type: integer
+                  description: 'Must be at least 0. Must not be greater than 4294967295.'
+                  example: 7
+                device_ids:
+                  type: array
+                  description: ''
+                  example:
+                    - 8
+                  items:
+                    type: integer
+                stops:
+                  type: array
+                  nullable: true
+                  items:
+                    $ref: '#/components/schemas/ShipmentStopInput'
+              required:
+                - name
+  '/v1/shipments/{shipmentId}':
+    get:
+      summary: 'Show a shipment'
+      operationId: showAShipment
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    patch:
+      summary: 'Update shipment metadata'
+      operationId: updateShipmentMetadata
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: kvoyqai
+                carrier:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: lfodgb
+                notes:
+                  type: string
+                  description: ''
+                  example: accusantium
+                asset_value:
+                  type: integer
+                  description: 'Must be at least 0. Must not be greater than 4294967295.'
+                  example: 3
+    delete:
+      summary: 'Soft-delete a shipment'
+      operationId: softDeleteAShipment
+      description: ''
+      parameters: []
+      responses:
+        204:
+          description: 'Deleted successfully.'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    parameters:
+      -
+        in: path
+        name: shipmentId
+        description: ''
+        example: 11
+        required: true
+        schema:
+          type: integer
+  '/v1/shipments/{shipmentId}/publish':
+    post:
+      summary: 'Publish a draft shipment'
+      operationId: publishADraftShipment
+      description: "Moves draft → booked. Publishing an already-published shipment is a no-op\nand returns the current resource (safe for retries)."
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    parameters:
+      -
+        in: path
+        name: shipmentId
+        description: ''
+        example: 14
+        required: true
+        schema:
+          type: integer
+  '/v1/shipments/{shipmentId}/archive':
+    post:
+      summary: 'Archive a shipment'
+      operationId: archiveAShipment
+      description: "Moves the shipment to `closed`, whatever its lifecycle status was. Archiving an\nalready-archived shipment is a no-op and returns the current resource (safe for\nretries). Reverse it with POST /shipments/{id}/unarchive."
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    parameters:
+      -
+        in: path
+        name: shipmentId
+        description: ''
+        example: 6
+        required: true
+        schema:
+          type: integer
+  '/v1/shipments/{shipmentId}/unarchive':
+    post:
+      summary: 'Unarchive a shipment'
+      operationId: unarchiveAShipment
+      description: "Clears `closed` and returns the shipment to the status its dates imply. Unarchiving\na shipment that is not archived is a no-op and returns the current resource."
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    parameters:
+      -
+        in: path
+        name: shipmentId
+        description: ''
+        example: 8
+        required: true
+        schema:
+          type: integer
+  '/v1/shipments/{shipmentId}/stops':
+    get:
+      summary: 'List stops for a shipment'
+      operationId: listStopsForAShipment
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    post:
+      summary: 'Create stops for a shipment (when none exist yet)'
+      operationId: createStopsForAShipmentwhenNoneExistYet
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    put:
+      summary: 'Sync stops for a shipment (full replace)'
+      operationId: syncStopsForAShipmentfullReplace
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    parameters:
+      -
+        in: path
+        name: shipmentId
+        description: ''
+        example: 1
+        required: true
+        schema:
+          type: integer
+  '/v1/shipments/{shipmentId}/stops/{stopId}':
+    delete:
+      summary: 'Delete a stop'
+      operationId: deleteAStop
+      description: ''
+      parameters: []
+      responses:
+        204:
+          description: 'Deleted successfully.'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    parameters:
+      -
+        in: path
+        name: shipmentId
+        description: ''
+        example: 17
+        required: true
+        schema:
+          type: integer
+      -
+        in: path
+        name: stopId
+        description: 'The stop ID.'
+        example: 81
+        required: true
+        schema:
+          type: integer
+  '/v1/shipments/{shipmentId}/routes':
+    get:
+      summary: 'List route segments for a shipment'
+      operationId: listRouteSegmentsForAShipment
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    post:
+      summary: 'Create a route segment'
+      operationId: createARouteSegment
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    parameters:
+      -
+        in: path
+        name: shipmentId
+        description: ''
+        example: 4
+        required: true
+        schema:
+          type: integer
+  '/v1/shipments/{shipmentId}/routes/{routeId}':
+    get:
+      summary: 'Show a route segment'
+      operationId: showARouteSegment
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    patch:
+      summary: 'Update a route segment'
+      operationId: updateARouteSegment
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    delete:
+      summary: 'Delete a route segment'
+      operationId: deleteARouteSegment
+      description: ''
+      parameters: []
+      responses:
+        204:
+          description: 'Deleted successfully.'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Shipments
+    parameters:
+      -
+        in: path
+        name: shipmentId
+        description: ''
+        example: 11
+        required: true
+        schema:
+          type: integer
+      -
+        in: path
+        name: routeId
+        description: 'The route segment ID.'
+        example: 12
+        required: true
+        schema:
+          type: integer
+  /v1/users:
+    get:
+      summary: 'List users'
+      operationId: listUsers
+      description: "Every row carries the account-scoped permission structure. permissions.device_ids\nand permissions.group_ids are the explicit direct grants only, not the resolved\nfleet the user can see."
+      parameters:
+        -
+          in: query
+          name: sort
+          description: 'Sort column, prefixed with - for descending.'
+          example: '-created_at'
+          required: false
+          schema:
+            type: string
+            description: 'Sort column, prefixed with - for descending.'
+            example: '-created_at'
+            enum:
+              - role
+              - '-role'
+              - created_at
+              - '-created_at'
+              - updated_at
+              - '-updated_at'
+        -
+          in: query
+          name: per_page
+          description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+          example: 50
+          required: false
+          schema:
+            type: integer
+            description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+            example: 50
+        -
+          in: query
+          name: page
+          description: 'Page number, starting at 1. Must be at least 1.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number, starting at 1. Must be at least 1.'
+            example: 1
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Users
+  /v1/users/invite:
+    post:
+      summary: 'Invite a user'
+      operationId: inviteAUser
+      description: "Creates the account relation and emails the invitation. An email that already\nbelongs to a user on another account is attached to this one; an email that is\nalready a member here is a 409 — changing a teammate is PATCH /users/{id}."
+      parameters: []
+      responses:
+        201:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address. Must not be greater than 255 characters.'
+                  example: hardy88@example.net
+                permissions:
+                  type: object
+                  description: ''
+                  example: []
+                  properties:
+                    role:
+                      type: string
+                      description: ''
+                      example: viewer
+                      enum:
+                        - admin
+                        - manager
+                        - user
+                        - viewer
+                    full_device_access:
+                      type: boolean
+                      description: ''
+                      example: true
+                    device_ids:
+                      type: array
+                      description: ''
+                      example:
+                        - 14
+                      items:
+                        type: integer
+                    group_ids:
+                      type: array
+                      description: ''
+                      example:
+                        - 19
+                      items:
+                        type: integer
+              required:
+                - email
+                - permissions
+  '/v1/users/{userId}':
+    get:
+      summary: 'Show a user'
+      operationId: showAUser
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Users
+    delete:
+      summary: 'Remove a user from the account'
+      operationId: removeAUserFromTheAccount
+      description: "Detaches the teammate and their grants. The user record itself survives — they may\nbelong to other accounts. Removing the account's only admin is a 409."
+      parameters: []
+      responses:
+        204:
+          description: 'Deleted successfully.'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Users
+    parameters:
+      -
+        in: path
+        name: userId
+        description: ''
+        example: 13
+        required: true
+        schema:
+          type: integer
+  /v1/container-types:
+    get:
+      summary: 'List container types'
+      operationId: listContainerTypes
+      description: ''
+      parameters:
+        -
+          in: query
+          name: sort
+          description: 'Sort column, prefixed with - for descending. Defaults to name.'
+          example: name
+          required: false
+          schema:
+            type: string
+            description: 'Sort column, prefixed with - for descending. Defaults to name.'
+            example: name
+            enum:
+              - name
+              - '-name'
+              - created_at
+              - '-created_at'
+              - updated_at
+              - '-updated_at'
+        -
+          in: query
+          name: per_page
+          description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+          example: 50
+          required: false
+          schema:
+            type: integer
+            description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+            example: 50
+        -
+          in: query
+          name: page
+          description: 'Page number, starting at 1. Must be at least 1.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number, starting at 1. Must be at least 1.'
+            example: 1
+      responses: {  }
+      tags:
+        - 'Container types'
+    post:
+      summary: 'Create a container type'
+      operationId: createAContainerType
+      description: 'Names are free text; a name that already exists creates a second type.'
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Container types'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: nnswkdczmiyuox
+              required:
+                - name
+  '/v1/container-types/{containerTypeId}':
+    get:
+      summary: 'Show a container type'
+      operationId: showAContainerType
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Container types'
+    patch:
+      summary: 'Rename a container type'
+      operationId: renameAContainerType
+      description: 'Devices reference the type by id, so they carry the new name with them.'
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Container types'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: oxlwtqi
+              required:
+                - name
+    delete:
+      summary: 'Delete a container type'
+      operationId: deleteAContainerType
+      description: 'Allowed while in use: the devices carrying it are kept and lose their type.'
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Container types'
+    parameters:
+      -
+        in: path
+        name: containerTypeId
+        description: ''
+        example: est
+        required: true
+        schema:
+          type: string
+  /v1/events:
+    get:
+      summary: 'List account events'
+      operationId: listAccountEvents
+      description: "Windowed on event_after / event_before (event_at). Filterable by device_id,\ngeofence_id, shipment_id, and event_type."
+      parameters:
+        -
+          in: query
+          name: event_after
+          description: 'Start of the window on event_at. Defaults to 24 hours before event_before when both are omitted, or 30 days before event_before when only event_before is set. Must be a valid date.'
+          example: '2026-07-02T00:00:00Z'
+          required: false
+          schema:
+            type: string
+            description: 'Start of the window on event_at. Defaults to 24 hours before event_before when both are omitted, or 30 days before event_before when only event_before is set. Must be a valid date.'
+            example: '2026-07-02T00:00:00Z'
+        -
+          in: query
+          name: event_before
+          description: 'End of the window on event_at. Defaults to now when omitted, or 30 days after event_after when only event_after is set. Must be a valid date. Must be a date after or equal to <code>event_after</code>.'
+          example: '2026-07-03T00:00:00Z'
+          required: false
+          schema:
+            type: string
+            description: 'End of the window on event_at. Defaults to now when omitted, or 30 days after event_after when only event_after is set. Must be a valid date. Must be a date after or equal to <code>event_after</code>.'
+            example: '2026-07-03T00:00:00Z'
+        -
+          in: query
+          name: sort
+          description: 'Sort on event_at. Prefix with - for descending. Defaults to -event_at.'
+          example: '-event_at'
+          required: false
+          schema:
+            type: string
+            description: 'Sort on event_at. Prefix with - for descending. Defaults to -event_at.'
+            example: '-event_at'
+            enum:
+              - event_at
+              - '-event_at'
+        -
+          in: query
+          name: per_page
+          description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+          example: 50
+          required: false
+          schema:
+            type: integer
+            description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+            example: 50
+        -
+          in: query
+          name: page
+          description: 'Page number, starting at 1. Must be at least 1.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number, starting at 1. Must be at least 1.'
+            example: 1
+        -
+          in: query
+          name: device_id
+          description: 'Restrict to one device. Must be at least 1.'
+          example: 123
+          required: false
+          schema:
+            type: integer
+            description: 'Restrict to one device. Must be at least 1.'
+            example: 123
+        -
+          in: query
+          name: geofence_id
+          description: 'Restrict to events for one geofence. Must be at least 1.'
+          example: 5
+          required: false
+          schema:
+            type: integer
+            description: 'Restrict to events for one geofence. Must be at least 1.'
+            example: 5
+        -
+          in: query
+          name: shipment_id
+          description: 'Restrict to events for one shipment. Must be at least 1.'
+          example: 7
+          required: false
+          schema:
+            type: integer
+            description: 'Restrict to events for one shipment. Must be at least 1.'
+            example: 7
+        -
+          in: query
+          name: event_type
+          description: 'Event type (e.g. geofence-exit, alarm-sos, shipment-late). Repeatable. Must not be greater than 128 characters.'
+          example:
+            - geofence-exit
+          required: false
+          schema:
+            type: array
+            description: 'Event type (e.g. geofence-exit, alarm-sos, shipment-late). Repeatable. Must not be greater than 128 characters.'
+            example:
+              - geofence-exit
+            items:
+              type: string
+      responses: {  }
+      tags:
+        - Events
+  /v1/groups:
+    get:
+      summary: 'List groups'
+      operationId: listGroups
+      description: ''
+      parameters:
+        -
+          in: query
+          name: sort
+          description: 'Sort column, prefixed with - for descending.'
+          example: '-created_at'
+          required: false
+          schema:
+            type: string
+            description: 'Sort column, prefixed with - for descending.'
+            example: '-created_at'
+            enum:
+              - name
+              - '-name'
+              - created_at
+              - '-created_at'
+              - updated_at
+              - '-updated_at'
+        -
+          in: query
+          name: per_page
+          description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+          example: 50
+          required: false
+          schema:
+            type: integer
+            description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+            example: 50
+        -
+          in: query
+          name: page
+          description: 'Page number, starting at 1. Must be at least 1.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number, starting at 1. Must be at least 1.'
+            example: 1
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Groups
+    post:
+      summary: 'Create a group'
+      operationId: createAGroup
+      description: "A group is created empty; members are added one at a time through\nPOST /groups/{id}/members."
+      parameters: []
+      responses:
+        201:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: jgebppto
+              required:
+                - name
+  '/v1/groups/{groupId}':
+    get:
+      summary: 'Show a group'
+      operationId: showAGroup
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Groups
+    patch:
+      summary: 'Update a group'
+      operationId: updateAGroup
+      description: 'A member list in the body is a 422: membership is incremental.'
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: qdrveeldmkvshwejekz
+              required:
+                - name
+    delete:
+      summary: 'Delete a group'
+      operationId: deleteAGroup
+      description: 'The devices in it are untouched — a group is a container, not an owner.'
+      parameters: []
+      responses:
+        204:
+          description: 'Deleted successfully.'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Groups
+    parameters:
+      -
+        in: path
+        name: groupId
+        description: ''
+        example: 17
+        required: true
+        schema:
+          type: integer
+  '/v1/groups/{groupId}/members':
+    get:
+      summary: "List a group's members"
+      operationId: listAGroupsMembers
+      description: 'Phase 1 groups are device-only, so every member carries type "device".'
+      parameters:
+        -
+          in: query
+          name: per_page
+          description: 'Members per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+          example: 50
+          required: false
+          schema:
+            type: integer
+            description: 'Members per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+            example: 50
+        -
+          in: query
+          name: page
+          description: 'Page number, starting at 1. Must be at least 1.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number, starting at 1. Must be at least 1.'
+            example: 1
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Groups
+    post:
+      summary: 'Add a member'
+      operationId: addAMember
+      description: 'Incremental. Adding a device that is already a member is still a 200.'
+      parameters: []
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                member_id:
+                  type: integer
+                  description: ''
+                  example: 8
+              required:
+                - member_id
+    parameters:
+      -
+        in: path
+        name: groupId
+        description: ''
+        example: 19
+        required: true
+        schema:
+          type: integer
+  '/v1/groups/{groupId}/members/{memberId}':
+    delete:
+      summary: 'Remove a member'
+      operationId: removeAMember
+      description: 'Removing a device that was not a member is still a 204.'
+      parameters: []
+      responses:
+        204:
+          description: 'Deleted successfully.'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+      tags:
+        - Groups
+    parameters:
+      -
+        in: path
+        name: groupId
+        description: ''
+        example: 17
+        required: true
+        schema:
+          type: integer
+      -
+        in: path
+        name: memberId
+        description: ''
+        example: dolor
+        required: true
+        schema:
+          type: string
+  /v1/place-types:
+    get:
+      summary: 'List place types'
+      operationId: listPlaceTypes
+      description: "The standard types first, then the account's custom types, each group by name."
+      parameters:
+        -
+          in: query
+          name: per_page
+          description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+          example: 50
+          required: false
+          schema:
+            type: integer
+            description: 'Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100.'
+            example: 50
+        -
+          in: query
+          name: page
+          description: 'Page number, starting at 1. Must be at least 1.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number, starting at 1. Must be at least 1.'
+            example: 1
+      responses: {  }
+      tags:
+        - 'Place types'
+    post:
+      summary: 'Create a custom place type'
+      operationId: createACustomPlaceType
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Place types'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: "Unique within the account, ignoring case, and never a standard type's name. Must not be greater than 255 characters."
+                  example: 'Pediatric Clinic'
+                slug:
+                  type: string
+                  description: 'Defaults to the name in snake case. Lowercase words joined by underscores. Unique within the account and never a standard slug. Fixed once any geofence uses the type. Must match the regex /^[a-z0-9]+(_[a-z0-9]+)*$/. Must not be greater than 64 characters.'
+                  example: pediatric_clinic
+                parent:
+                  type: string
+                  description: 'Slug of the standard place type this one rolls up to.'
+                  example: demo_location
+              required:
+                - name
+                - slug
+                - parent
+  '/v1/place-types/{placeTypeSlug}':
+    get:
+      summary: 'Show a place type'
+      operationId: showAPlaceType
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Place types'
+    patch:
+      summary: 'Update a custom place type'
+      operationId: updateACustomPlaceType
+      description: 'Geofences follow a rename and a new parent. Standard types cannot be changed.'
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Place types'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: "Unique within the account, ignoring case, and never a standard type's name. Must not be greater than 255 characters."
+                  example: 'Pediatric Clinic'
+                slug:
+                  type: string
+                  description: 'Lowercase words joined by underscores. Unique within the account and never a standard slug. Fixed once any geofence uses the type. Must match the regex /^[a-z0-9]+(_[a-z0-9]+)*$/. Must not be greater than 64 characters.'
+                  example: pediatric_clinic
+                parent:
+                  type: string
+                  description: 'Slug of the standard place type this one rolls up to.'
+                  example: demo_location
+    delete:
+      summary: 'Delete a custom place type'
+      operationId: deleteACustomPlaceType
+      description: 'Geofences using it move to its parent type. Standard types cannot be deleted.'
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Place types'
+    parameters:
+      -
+        in: path
+        name: placeTypeSlug
+        description: "A standard slug or one of the account's custom slugs."
+        example: pediatric_clinic
+        required: true
+        schema:
+          type: string
+tags:
+  -
+    name: Account
+    description: 'The account a token belongs to.'
+  -
+    name: Devices
+    description: 'Trackers on the account, their sharing links and their position history.'
+  -
+    name: Geofences
+    description: 'Named places, their geometry and the place / ownership taxonomy.'
+  -
+    name: Shipments
+    description: 'Shipments, their stops and their route segments.'
+  -
+    name: Users
+    description: 'Teammates on the account and the devices each of them can see.'
+  -
+    name: 'Container types'
+    description: "The account's own vocabulary of returnable container types, which devices reference by id."
+  -
+    name: Events
+    description: 'Account-wide chronological feed of device events (geofence, alarms, shipment).'
+  -
+    name: Groups
+    description: 'Device groups — fleet organisation, and the unit bulk device access is granted in.'
+  -
+    name: 'Place types'
+    description: "The GPX standard place types, plus the account's own custom types, each under a standard parent. A geofence's place_type is one of these slugs."
+components:
+  securitySchemes:
+    default:
+      type: http
+      scheme: bearer
+      description: 'Tokens are provisioned by GPX. Contact support to have one issued for your account.'
+  schemas:
+    PublicApiResource:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+    PublicApiCollection:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        meta:
+          type: object
+          additionalProperties: true
+        links:
+          type: object
+          additionalProperties: true
+    PublicApiError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+    ShipmentStopInput:
+      type: object
+      required:
+        - sequence
+        - location_type
+      properties:
+        sequence:
+          type: integer
+          minimum: 0
+          example: 0
+        location_type:
+          type: string
+          enum:
+            - circle
+            - geofence
+        name:
+          type: string
+          nullable: true
+        geofence_id:
+          type: integer
+          nullable: true
+        center:
+          type: object
+          nullable: true
+          properties:
+            latitude:
+              type: number
+              format: double
+            longitude:
+              type: number
+              format: double
+        radius_meters:
+          type: integer
+          minimum: 50
+          maximum: 10000
+          nullable: true
+security:
+  -
+    default: []

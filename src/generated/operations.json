@@ -1,0 +1,2183 @@
+[
+  {
+    "name": "show_the_authenticated_account",
+    "title": "Show the authenticated account",
+    "description": "Show the authenticated account\n\nReturns the account the presented token belongs to, so it also serves as a\ncredential check.",
+    "method": "GET",
+    "path": "/v1/account",
+    "readOnly": true,
+    "fields": {
+      "path": [],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_the_authenticated_account",
+    "title": "Update the authenticated account",
+    "description": "Update the authenticated account\n\nAccepts name and the customer-writable settings. Turning tracker_sharing_enabled on\nmakes every device set to public — or inheriting a public default — reachable on an\nunauthenticated URL.",
+    "method": "PATCH",
+    "path": "/v1/account",
+    "readOnly": false,
+    "fields": {
+      "path": [],
+      "query": [],
+      "body": [
+        "name",
+        "settings"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        },
+        "settings": {
+          "type": "object",
+          "properties": {
+            "tracker_sharing_enabled": {
+              "type": "boolean"
+            },
+            "tracker_sharing_default": {
+              "type": "string",
+              "enum": [
+                "public",
+                "private"
+              ]
+            },
+            "shareable_link_logo_mode": {
+              "type": "string",
+              "enum": [
+                "default",
+                "none",
+                "custom"
+              ]
+            },
+            "shareable_link_logo_file_id": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_devices",
+    "title": "List devices",
+    "description": "List devices\n\nFilterable by name, serial, status and model.",
+    "method": "GET",
+    "path": "/v1/devices",
+    "readOnly": true,
+    "fields": {
+      "path": [],
+      "query": [
+        "name",
+        "serial",
+        "status",
+        "model",
+        "include",
+        "sort",
+        "per_page",
+        "page"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Partial match on the device name. Must not be greater than 255 characters."
+        },
+        "serial": {
+          "type": "string",
+          "description": "Exact match. A serial is looked up, not searched. Must not be greater than 255 characters."
+        },
+        "status": {
+          "type": "array",
+          "description": "A device lifecycle state.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "active",
+              "provisioned",
+              "hidden",
+              "archived",
+              "replaced"
+            ]
+          }
+        },
+        "model": {
+          "type": "array",
+          "description": "A device model. Must not be greater than 255 characters.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "include": {
+          "type": "array",
+          "description": "Include telemetry and/or last_position. Comma-separate values. Omitted by default because both are cross-store reads.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "telemetry",
+              "last_position"
+            ]
+          }
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort column, prefixed with - for descending.",
+          "enum": [
+            "name",
+            "-name",
+            "serial",
+            "-serial",
+            "status",
+            "-status",
+            "created_at",
+            "-created_at",
+            "updated_at",
+            "-updated_at"
+          ]
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100."
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number, starting at 1. Must be at least 1."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "show_a_device",
+    "title": "Show a device",
+    "description": "Show a device",
+    "method": "GET",
+    "path": "/v1/devices/{deviceId}",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "deviceId"
+      ],
+      "query": [
+        "include"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "integer"
+        },
+        "include": {
+          "type": "array",
+          "description": "Include telemetry and/or last_position. Comma-separate values. Omitted by default because both are cross-store reads.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "telemetry",
+              "last_position"
+            ]
+          }
+        }
+      },
+      "required": [
+        "deviceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_a_device",
+    "title": "Update a device",
+    "description": "Update a device\n\nAccepts name, note, asset_value, tracker_sharing and container_type_id.",
+    "method": "PATCH",
+    "path": "/v1/devices/{deviceId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "deviceId"
+      ],
+      "query": [],
+      "body": [
+        "name",
+        "note",
+        "asset_value",
+        "tracker_sharing",
+        "container_type_id"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        },
+        "note": {
+          "type": "string"
+        },
+        "asset_value": {
+          "type": "integer",
+          "description": "Must be at least 0."
+        },
+        "tracker_sharing": {
+          "type": "string",
+          "enum": [
+            "inherit",
+            "public",
+            "private"
+          ]
+        },
+        "container_type_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "deviceId",
+        "name",
+        "tracker_sharing"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_a_devices_positions",
+    "title": "List a device's positions",
+    "description": "List a device's positions",
+    "method": "GET",
+    "path": "/v1/devices/{deviceId}/positions",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "deviceId"
+      ],
+      "query": [
+        "location_after",
+        "location_before",
+        "sort",
+        "per_page",
+        "page"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "integer"
+        },
+        "location_after": {
+          "type": "string",
+          "description": "Start of the window on the time the device recorded the fix. Defaults to 24 hours before location_before. Must be a valid date."
+        },
+        "location_before": {
+          "type": "string",
+          "description": "End of the window on the time the device recorded the fix. Defaults to now. Must be a valid date. Must be a date after or equal to <code>location_after</code>."
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort on location_at, prefixed with - for descending.",
+          "enum": [
+            "location_at",
+            "-location_at"
+          ]
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100."
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number, starting at 1. Must be at least 1."
+        }
+      },
+      "required": [
+        "deviceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_a_devices_events",
+    "title": "List a device's events",
+    "description": "List a device's events\n\nSame feed as GET /events, scoped to one device. Windowed on event_at.",
+    "method": "GET",
+    "path": "/v1/devices/{deviceId}/events",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "deviceId"
+      ],
+      "query": [
+        "event_after",
+        "event_before",
+        "sort",
+        "per_page",
+        "page",
+        "geofence_id",
+        "shipment_id",
+        "event_type"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "integer"
+        },
+        "event_after": {
+          "type": "string",
+          "description": "Start of the window on event_at. Defaults to 24 hours before event_before when both are omitted, or 30 days before event_before when only event_before is set. Must be a valid date."
+        },
+        "event_before": {
+          "type": "string",
+          "description": "End of the window on event_at. Defaults to now when omitted, or 30 days after event_after when only event_after is set. Must be a valid date. Must be a date after or equal to <code>event_after</code>."
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort on event_at. Prefix with - for descending. Defaults to -event_at.",
+          "enum": [
+            "event_at",
+            "-event_at"
+          ]
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100."
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number, starting at 1. Must be at least 1."
+        },
+        "geofence_id": {
+          "type": "integer",
+          "description": "Restrict to events for one geofence. Must be at least 1."
+        },
+        "shipment_id": {
+          "type": "integer",
+          "description": "Restrict to events for one shipment. Must be at least 1."
+        },
+        "event_type": {
+          "type": "array",
+          "description": "Event type (e.g. geofence-exit, alarm-sos, shipment-late). Repeatable. Must not be greater than 128 characters.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "deviceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_geofences",
+    "title": "List geofences",
+    "description": "List geofences\n\nFilterable by place_type and ownership_type, each multi-value.",
+    "method": "GET",
+    "path": "/v1/geofences",
+    "readOnly": true,
+    "fields": {
+      "path": [],
+      "query": [
+        "place_type",
+        "ownership_type",
+        "search",
+        "sort",
+        "per_page",
+        "page"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "place_type": {
+          "type": "array",
+          "description": "A place type slug, standard or one of the account's own. A standard slug also matches its custom types. Up to 100 values.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ownership_type": {
+          "type": "array",
+          "description": "An ownership type.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "owned",
+              "customer",
+              "supplier",
+              "3pl",
+              "public"
+            ]
+          }
+        },
+        "search": {
+          "type": "string",
+          "description": "Partial match on the geofence name. Must not be greater than 255 characters."
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort column, prefixed with - for descending.",
+          "enum": [
+            "name",
+            "-name",
+            "created_at",
+            "-created_at",
+            "updated_at",
+            "-updated_at"
+          ]
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100."
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number, starting at 1. Must be at least 1."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_a_geofence",
+    "title": "Create a geofence",
+    "description": "Create a geofence\n\nRequires a location: latitude + longitude + radius_meters, or a geojson\nPolygon / MultiPolygon whose rings are closed.",
+    "method": "POST",
+    "path": "/v1/geofences",
+    "readOnly": false,
+    "fields": {
+      "path": [],
+      "query": [],
+      "body": [
+        "address",
+        "alerting",
+        "latitude",
+        "longitude",
+        "radius_meters",
+        "geojson",
+        "min_assets",
+        "max_assets",
+        "allowable_dwell_seconds",
+        "place_type",
+        "ownership_type",
+        "name"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string",
+          "description": "Must not be greater than 1000 characters."
+        },
+        "alerting": {
+          "type": "boolean"
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Must be at least -90. Must not be greater than 90."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Must be at least -180. Must not be greater than 180."
+        },
+        "radius_meters": {
+          "type": "number",
+          "description": "Must be at least 0."
+        },
+        "geojson": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "This field is required when <code>geojson</code> is present."
+            }
+          }
+        },
+        "min_assets": {
+          "type": "integer",
+          "description": "Must be at least 0. Must not be greater than 500."
+        },
+        "max_assets": {
+          "type": "integer",
+          "description": "Must be at least 0. Must not be greater than 500."
+        },
+        "allowable_dwell_seconds": {
+          "type": "integer",
+          "description": "Must be at least 0. Must not be greater than 43200000."
+        },
+        "place_type": {
+          "type": "string",
+          "description": "A place type slug, standard or one of the account's own custom types. See the place types endpoints."
+        },
+        "ownership_type": {
+          "type": "string",
+          "enum": [
+            "owned",
+            "customer",
+            "supplier",
+            "3pl",
+            "public"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "show_a_geofence",
+    "title": "Show a geofence",
+    "description": "Show a geofence",
+    "method": "GET",
+    "path": "/v1/geofences/{geofenceId}",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "geofenceId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "geofenceId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "geofenceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_a_geofence",
+    "title": "Update a geofence",
+    "description": "Update a geofence",
+    "method": "PATCH",
+    "path": "/v1/geofences/{geofenceId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "geofenceId"
+      ],
+      "query": [],
+      "body": [
+        "address",
+        "alerting",
+        "latitude",
+        "longitude",
+        "radius_meters",
+        "geojson",
+        "min_assets",
+        "max_assets",
+        "allowable_dwell_seconds",
+        "place_type",
+        "ownership_type",
+        "name"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "geofenceId": {
+          "type": "integer"
+        },
+        "address": {
+          "type": "string",
+          "description": "Must not be greater than 1000 characters."
+        },
+        "alerting": {
+          "type": "boolean"
+        },
+        "latitude": {
+          "type": "number",
+          "description": "Must be at least -90. Must not be greater than 90."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "Must be at least -180. Must not be greater than 180."
+        },
+        "radius_meters": {
+          "type": "number",
+          "description": "Must be at least 0."
+        },
+        "geojson": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "This field is required when <code>geojson</code> is present."
+            }
+          }
+        },
+        "min_assets": {
+          "type": "integer",
+          "description": "Must be at least 0. Must not be greater than 500."
+        },
+        "max_assets": {
+          "type": "integer",
+          "description": "Must be at least 0. Must not be greater than 500."
+        },
+        "allowable_dwell_seconds": {
+          "type": "integer",
+          "description": "Must be at least 0. Must not be greater than 43200000."
+        },
+        "place_type": {
+          "type": "string",
+          "description": "A place type slug, standard or one of the account's own custom types. See the place types endpoints."
+        },
+        "ownership_type": {
+          "type": "string",
+          "enum": [
+            "owned",
+            "customer",
+            "supplier",
+            "3pl",
+            "public"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        }
+      },
+      "required": [
+        "geofenceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_a_geofence",
+    "title": "Delete a geofence",
+    "description": "Delete a geofence",
+    "method": "DELETE",
+    "path": "/v1/geofences/{geofenceId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "geofenceId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "geofenceId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "geofenceId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_shipments",
+    "title": "List shipments",
+    "description": "List shipments",
+    "method": "GET",
+    "path": "/v1/shipments",
+    "readOnly": true,
+    "fields": {
+      "path": [],
+      "query": [
+        "status",
+        "carrier",
+        "origin_geofence_id",
+        "destination_geofence_id",
+        "pickup_after",
+        "pickup_before",
+        "delivery_after",
+        "delivery_before",
+        "search",
+        "sort",
+        "per_page",
+        "page"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Display status. Comma-separate for several."
+        },
+        "carrier": {
+          "type": "string",
+          "description": "Exact carrier name. Comma-separate for several."
+        },
+        "origin_geofence_id": {
+          "type": "integer",
+          "description": "Only shipments departing this geofence."
+        },
+        "destination_geofence_id": {
+          "type": "integer",
+          "description": "Only shipments arriving at this geofence."
+        },
+        "pickup_after": {
+          "type": "string",
+          "description": "Earliest pickup — actual once departed, otherwise scheduled. Must be a valid date."
+        },
+        "pickup_before": {
+          "type": "string",
+          "description": "Latest pickup — actual once departed, otherwise scheduled. Must be a valid date. Must be a date after or equal to <code>pickup_after</code>."
+        },
+        "delivery_after": {
+          "type": "string",
+          "description": "Earliest delivery — actual once delivered, otherwise scheduled. Must be a valid date."
+        },
+        "delivery_before": {
+          "type": "string",
+          "description": "Latest delivery — actual once delivered, otherwise scheduled. Must be a valid date. Must be a date after or equal to <code>delivery_after</code>."
+        },
+        "search": {
+          "type": "string",
+          "description": "Partial match on the shipment name or carrier. Must not be greater than 255 characters."
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort column, prefixed with - for descending.",
+          "enum": [
+            "name",
+            "carrier",
+            "start_at",
+            "end_at",
+            "updated_at",
+            "created_at",
+            "-name",
+            "-carrier",
+            "-start_at",
+            "-end_at",
+            "-updated_at",
+            "-created_at"
+          ]
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100."
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number, starting at 1. Must be at least 1."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_a_shipment",
+    "title": "Create a shipment",
+    "description": "Create a shipment",
+    "method": "POST",
+    "path": "/v1/shipments",
+    "readOnly": false,
+    "fields": {
+      "path": [],
+      "query": [],
+      "body": [
+        "name",
+        "carrier",
+        "notes",
+        "asset_value",
+        "device_ids",
+        "stops"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        },
+        "carrier": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        },
+        "notes": {
+          "type": "string"
+        },
+        "asset_value": {
+          "type": "integer",
+          "description": "Must be at least 0. Must not be greater than 4294967295."
+        },
+        "device_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "stops": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "required": [
+              "sequence",
+              "location_type"
+            ],
+            "properties": {
+              "sequence": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "location_type": {
+                "type": "string",
+                "enum": [
+                  "circle",
+                  "geofence"
+                ]
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "geofence_id": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "center": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "latitude": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "longitude": {
+                    "type": "number",
+                    "format": "double"
+                  }
+                }
+              },
+              "radius_meters": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 50,
+                "maximum": 10000
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "show_a_shipment",
+    "title": "Show a shipment",
+    "description": "Show a shipment",
+    "method": "GET",
+    "path": "/v1/shipments/{shipmentId}",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "shipmentId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shipmentId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_shipment_metadata",
+    "title": "Update shipment metadata",
+    "description": "Update shipment metadata",
+    "method": "PATCH",
+    "path": "/v1/shipments/{shipmentId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "shipmentId"
+      ],
+      "query": [],
+      "body": [
+        "name",
+        "carrier",
+        "notes",
+        "asset_value"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        },
+        "carrier": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        },
+        "notes": {
+          "type": "string"
+        },
+        "asset_value": {
+          "type": "integer",
+          "description": "Must be at least 0. Must not be greater than 4294967295."
+        }
+      },
+      "required": [
+        "shipmentId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "soft_delete_a_shipment",
+    "title": "Soft-delete a shipment",
+    "description": "Soft-delete a shipment",
+    "method": "DELETE",
+    "path": "/v1/shipments/{shipmentId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "shipmentId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shipmentId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "publish_a_draft_shipment",
+    "title": "Publish a draft shipment",
+    "description": "Publish a draft shipment\n\nMoves draft → booked. Publishing an already-published shipment is a no-op\nand returns the current resource (safe for retries).",
+    "method": "POST",
+    "path": "/v1/shipments/{shipmentId}/publish",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "shipmentId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shipmentId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "archive_a_shipment",
+    "title": "Archive a shipment",
+    "description": "Archive a shipment\n\nMoves the shipment to `closed`, whatever its lifecycle status was. Archiving an\nalready-archived shipment is a no-op and returns the current resource (safe for\nretries). Reverse it with POST /shipments/{id}/unarchive.",
+    "method": "POST",
+    "path": "/v1/shipments/{shipmentId}/archive",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "shipmentId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shipmentId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "unarchive_a_shipment",
+    "title": "Unarchive a shipment",
+    "description": "Unarchive a shipment\n\nClears `closed` and returns the shipment to the status its dates imply. Unarchiving\na shipment that is not archived is a no-op and returns the current resource.",
+    "method": "POST",
+    "path": "/v1/shipments/{shipmentId}/unarchive",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "shipmentId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shipmentId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_stops_for_a_shipment",
+    "title": "List stops for a shipment",
+    "description": "List stops for a shipment",
+    "method": "GET",
+    "path": "/v1/shipments/{shipmentId}/stops",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "shipmentId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shipmentId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_stops_for_a_shipmentwhen_none_exist_yet",
+    "title": "Create stops for a shipment (when none exist yet)",
+    "description": "Create stops for a shipment (when none exist yet)",
+    "method": "POST",
+    "path": "/v1/shipments/{shipmentId}/stops",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "shipmentId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shipmentId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "sync_stops_for_a_shipmentfull_replace",
+    "title": "Sync stops for a shipment (full replace)",
+    "description": "Sync stops for a shipment (full replace)",
+    "method": "PUT",
+    "path": "/v1/shipments/{shipmentId}/stops",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "shipmentId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shipmentId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_a_stop",
+    "title": "Delete a stop",
+    "description": "Delete a stop",
+    "method": "DELETE",
+    "path": "/v1/shipments/{shipmentId}/stops/{stopId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "shipmentId",
+        "stopId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        },
+        "stopId": {
+          "type": "integer",
+          "description": "The stop ID."
+        }
+      },
+      "required": [
+        "shipmentId",
+        "stopId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_route_segments_for_a_shipment",
+    "title": "List route segments for a shipment",
+    "description": "List route segments for a shipment",
+    "method": "GET",
+    "path": "/v1/shipments/{shipmentId}/routes",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "shipmentId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shipmentId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_a_route_segment",
+    "title": "Create a route segment",
+    "description": "Create a route segment",
+    "method": "POST",
+    "path": "/v1/shipments/{shipmentId}/routes",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "shipmentId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "shipmentId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "show_a_route_segment",
+    "title": "Show a route segment",
+    "description": "Show a route segment",
+    "method": "GET",
+    "path": "/v1/shipments/{shipmentId}/routes/{routeId}",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "shipmentId",
+        "routeId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        },
+        "routeId": {
+          "type": "integer",
+          "description": "The route segment ID."
+        }
+      },
+      "required": [
+        "shipmentId",
+        "routeId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_a_route_segment",
+    "title": "Update a route segment",
+    "description": "Update a route segment",
+    "method": "PATCH",
+    "path": "/v1/shipments/{shipmentId}/routes/{routeId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "shipmentId",
+        "routeId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        },
+        "routeId": {
+          "type": "integer",
+          "description": "The route segment ID."
+        }
+      },
+      "required": [
+        "shipmentId",
+        "routeId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_a_route_segment",
+    "title": "Delete a route segment",
+    "description": "Delete a route segment",
+    "method": "DELETE",
+    "path": "/v1/shipments/{shipmentId}/routes/{routeId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "shipmentId",
+        "routeId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "shipmentId": {
+          "type": "integer"
+        },
+        "routeId": {
+          "type": "integer",
+          "description": "The route segment ID."
+        }
+      },
+      "required": [
+        "shipmentId",
+        "routeId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_users",
+    "title": "List users",
+    "description": "List users\n\nEvery row carries the account-scoped permission structure. permissions.device_ids\nand permissions.group_ids are the explicit direct grants only, not the resolved\nfleet the user can see.",
+    "method": "GET",
+    "path": "/v1/users",
+    "readOnly": true,
+    "fields": {
+      "path": [],
+      "query": [
+        "sort",
+        "per_page",
+        "page"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sort": {
+          "type": "string",
+          "description": "Sort column, prefixed with - for descending.",
+          "enum": [
+            "role",
+            "-role",
+            "created_at",
+            "-created_at",
+            "updated_at",
+            "-updated_at"
+          ]
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100."
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number, starting at 1. Must be at least 1."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "invite_a_user",
+    "title": "Invite a user",
+    "description": "Invite a user\n\nCreates the account relation and emails the invitation. An email that already\nbelongs to a user on another account is attached to this one; an email that is\nalready a member here is a 409 — changing a teammate is PATCH /users/{id}.",
+    "method": "POST",
+    "path": "/v1/users/invite",
+    "readOnly": false,
+    "fields": {
+      "path": [],
+      "query": [],
+      "body": [
+        "email",
+        "permissions"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Must be a valid email address. Must not be greater than 255 characters."
+        },
+        "permissions": {
+          "type": "object",
+          "properties": {
+            "role": {
+              "type": "string",
+              "enum": [
+                "admin",
+                "manager",
+                "user",
+                "viewer"
+              ]
+            },
+            "full_device_access": {
+              "type": "boolean"
+            },
+            "device_ids": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            },
+            "group_ids": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "email",
+        "permissions"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "show_a_user",
+    "title": "Show a user",
+    "description": "Show a user",
+    "method": "GET",
+    "path": "/v1/users/{userId}",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "userId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "userId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "remove_a_user_from_the_account",
+    "title": "Remove a user from the account",
+    "description": "Remove a user from the account\n\nDetaches the teammate and their grants. The user record itself survives — they may\nbelong to other accounts. Removing the account's only admin is a 409.",
+    "method": "DELETE",
+    "path": "/v1/users/{userId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "userId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "userId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_container_types",
+    "title": "List container types",
+    "description": "List container types",
+    "method": "GET",
+    "path": "/v1/container-types",
+    "readOnly": true,
+    "fields": {
+      "path": [],
+      "query": [
+        "sort",
+        "per_page",
+        "page"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sort": {
+          "type": "string",
+          "description": "Sort column, prefixed with - for descending. Defaults to name.",
+          "enum": [
+            "name",
+            "-name",
+            "created_at",
+            "-created_at",
+            "updated_at",
+            "-updated_at"
+          ]
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100."
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number, starting at 1. Must be at least 1."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_a_container_type",
+    "title": "Create a container type",
+    "description": "Create a container type\n\nNames are free text; a name that already exists creates a second type.",
+    "method": "POST",
+    "path": "/v1/container-types",
+    "readOnly": false,
+    "fields": {
+      "path": [],
+      "query": [],
+      "body": [
+        "name"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "show_a_container_type",
+    "title": "Show a container type",
+    "description": "Show a container type",
+    "method": "GET",
+    "path": "/v1/container-types/{containerTypeId}",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "containerTypeId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "containerTypeId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "containerTypeId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "rename_a_container_type",
+    "title": "Rename a container type",
+    "description": "Rename a container type\n\nDevices reference the type by id, so they carry the new name with them.",
+    "method": "PATCH",
+    "path": "/v1/container-types/{containerTypeId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "containerTypeId"
+      ],
+      "query": [],
+      "body": [
+        "name"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "containerTypeId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        }
+      },
+      "required": [
+        "containerTypeId",
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_a_container_type",
+    "title": "Delete a container type",
+    "description": "Delete a container type\n\nAllowed while in use: the devices carrying it are kept and lose their type.",
+    "method": "DELETE",
+    "path": "/v1/container-types/{containerTypeId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "containerTypeId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "containerTypeId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "containerTypeId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_account_events",
+    "title": "List account events",
+    "description": "List account events\n\nWindowed on event_after / event_before (event_at). Filterable by device_id,\ngeofence_id, shipment_id, and event_type.",
+    "method": "GET",
+    "path": "/v1/events",
+    "readOnly": true,
+    "fields": {
+      "path": [],
+      "query": [
+        "event_after",
+        "event_before",
+        "sort",
+        "per_page",
+        "page",
+        "device_id",
+        "geofence_id",
+        "shipment_id",
+        "event_type"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "event_after": {
+          "type": "string",
+          "description": "Start of the window on event_at. Defaults to 24 hours before event_before when both are omitted, or 30 days before event_before when only event_before is set. Must be a valid date."
+        },
+        "event_before": {
+          "type": "string",
+          "description": "End of the window on event_at. Defaults to now when omitted, or 30 days after event_after when only event_after is set. Must be a valid date. Must be a date after or equal to <code>event_after</code>."
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort on event_at. Prefix with - for descending. Defaults to -event_at.",
+          "enum": [
+            "event_at",
+            "-event_at"
+          ]
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100."
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number, starting at 1. Must be at least 1."
+        },
+        "device_id": {
+          "type": "integer",
+          "description": "Restrict to one device. Must be at least 1."
+        },
+        "geofence_id": {
+          "type": "integer",
+          "description": "Restrict to events for one geofence. Must be at least 1."
+        },
+        "shipment_id": {
+          "type": "integer",
+          "description": "Restrict to events for one shipment. Must be at least 1."
+        },
+        "event_type": {
+          "type": "array",
+          "description": "Event type (e.g. geofence-exit, alarm-sos, shipment-late). Repeatable. Must not be greater than 128 characters.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_groups",
+    "title": "List groups",
+    "description": "List groups",
+    "method": "GET",
+    "path": "/v1/groups",
+    "readOnly": true,
+    "fields": {
+      "path": [],
+      "query": [
+        "sort",
+        "per_page",
+        "page"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sort": {
+          "type": "string",
+          "description": "Sort column, prefixed with - for descending.",
+          "enum": [
+            "name",
+            "-name",
+            "created_at",
+            "-created_at",
+            "updated_at",
+            "-updated_at"
+          ]
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100."
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number, starting at 1. Must be at least 1."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_a_group",
+    "title": "Create a group",
+    "description": "Create a group\n\nA group is created empty; members are added one at a time through\nPOST /groups/{id}/members.",
+    "method": "POST",
+    "path": "/v1/groups",
+    "readOnly": false,
+    "fields": {
+      "path": [],
+      "query": [],
+      "body": [
+        "name"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "show_a_group",
+    "title": "Show a group",
+    "description": "Show a group",
+    "method": "GET",
+    "path": "/v1/groups/{groupId}",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "groupId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "groupId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_a_group",
+    "title": "Update a group",
+    "description": "Update a group\n\nA member list in the body is a 422: membership is incremental.",
+    "method": "PATCH",
+    "path": "/v1/groups/{groupId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "groupId"
+      ],
+      "query": [],
+      "body": [
+        "name"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string",
+          "description": "Must not be greater than 255 characters."
+        }
+      },
+      "required": [
+        "groupId",
+        "name"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_a_group",
+    "title": "Delete a group",
+    "description": "Delete a group\n\nThe devices in it are untouched — a group is a container, not an owner.",
+    "method": "DELETE",
+    "path": "/v1/groups/{groupId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "groupId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "groupId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_a_groups_members",
+    "title": "List a group's members",
+    "description": "List a group's members\n\nPhase 1 groups are device-only, so every member carries type \"device\".",
+    "method": "GET",
+    "path": "/v1/groups/{groupId}/members",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "groupId"
+      ],
+      "query": [
+        "per_page",
+        "page"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "integer"
+        },
+        "per_page": {
+          "type": "integer",
+          "description": "Members per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100."
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number, starting at 1. Must be at least 1."
+        }
+      },
+      "required": [
+        "groupId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "add_a_member",
+    "title": "Add a member",
+    "description": "Add a member\n\nIncremental. Adding a device that is already a member is still a 200.",
+    "method": "POST",
+    "path": "/v1/groups/{groupId}/members",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "groupId"
+      ],
+      "query": [],
+      "body": [
+        "member_id"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "integer"
+        },
+        "member_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "groupId",
+        "member_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "remove_a_member",
+    "title": "Remove a member",
+    "description": "Remove a member\n\nRemoving a device that was not a member is still a 204.",
+    "method": "DELETE",
+    "path": "/v1/groups/{groupId}/members/{memberId}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "groupId",
+        "memberId"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "integer"
+        },
+        "memberId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "groupId",
+        "memberId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_place_types",
+    "title": "List place types",
+    "description": "List place types\n\nThe standard types first, then the account's custom types, each group by name.",
+    "method": "GET",
+    "path": "/v1/place-types",
+    "readOnly": true,
+    "fields": {
+      "path": [],
+      "query": [
+        "per_page",
+        "page"
+      ],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "per_page": {
+          "type": "integer",
+          "description": "Results per page. Defaults to 50, capped at 100. Must be at least 1. Must not be greater than 100."
+        },
+        "page": {
+          "type": "integer",
+          "description": "Page number, starting at 1. Must be at least 1."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_a_custom_place_type",
+    "title": "Create a custom place type",
+    "description": "Create a custom place type",
+    "method": "POST",
+    "path": "/v1/place-types",
+    "readOnly": false,
+    "fields": {
+      "path": [],
+      "query": [],
+      "body": [
+        "name",
+        "slug",
+        "parent"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Unique within the account, ignoring case, and never a standard type's name. Must not be greater than 255 characters."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Defaults to the name in snake case. Lowercase words joined by underscores. Unique within the account and never a standard slug. Fixed once any geofence uses the type. Must match the regex /^[a-z0-9]+(_[a-z0-9]+)*$/. Must not be greater than 64 characters."
+        },
+        "parent": {
+          "type": "string",
+          "description": "Slug of the standard place type this one rolls up to."
+        }
+      },
+      "required": [
+        "name",
+        "slug",
+        "parent"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "show_a_place_type",
+    "title": "Show a place type",
+    "description": "Show a place type",
+    "method": "GET",
+    "path": "/v1/place-types/{placeTypeSlug}",
+    "readOnly": true,
+    "fields": {
+      "path": [
+        "placeTypeSlug"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "placeTypeSlug": {
+          "type": "string",
+          "description": "A standard slug or one of the account's custom slugs."
+        }
+      },
+      "required": [
+        "placeTypeSlug"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "update_a_custom_place_type",
+    "title": "Update a custom place type",
+    "description": "Update a custom place type\n\nGeofences follow a rename and a new parent. Standard types cannot be changed.",
+    "method": "PATCH",
+    "path": "/v1/place-types/{placeTypeSlug}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "placeTypeSlug"
+      ],
+      "query": [],
+      "body": [
+        "name",
+        "slug",
+        "parent"
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "placeTypeSlug": {
+          "type": "string",
+          "description": "A standard slug or one of the account's custom slugs."
+        },
+        "name": {
+          "type": "string",
+          "description": "Unique within the account, ignoring case, and never a standard type's name. Must not be greater than 255 characters."
+        },
+        "slug": {
+          "type": "string",
+          "description": "Lowercase words joined by underscores. Unique within the account and never a standard slug. Fixed once any geofence uses the type. Must match the regex /^[a-z0-9]+(_[a-z0-9]+)*$/. Must not be greater than 64 characters."
+        },
+        "parent": {
+          "type": "string",
+          "description": "Slug of the standard place type this one rolls up to."
+        }
+      },
+      "required": [
+        "placeTypeSlug"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "delete_a_custom_place_type",
+    "title": "Delete a custom place type",
+    "description": "Delete a custom place type\n\nGeofences using it move to its parent type. Standard types cannot be deleted.",
+    "method": "DELETE",
+    "path": "/v1/place-types/{placeTypeSlug}",
+    "readOnly": false,
+    "fields": {
+      "path": [
+        "placeTypeSlug"
+      ],
+      "query": [],
+      "body": []
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "placeTypeSlug": {
+          "type": "string",
+          "description": "A standard slug or one of the account's custom slugs."
+        }
+      },
+      "required": [
+        "placeTypeSlug"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

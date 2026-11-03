@@ -1,0 +1,44 @@
+{
+  "name": "@gpxco/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for the GPX Public API v1. Connect Claude, Cursor or any MCP client to your GPX account.",
+  "license": "MIT",
+  "author": "GPX <support@gpx.co>",
+  "homepage": "https://github.com/gpxco/gpx-mcp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gpxco/gpx-mcp.git"
+  },
+  "keywords": ["mcp", "model-context-protocol", "gpx", "gps", "tracking", "shipments"],
+  "type": "module",
+  "bin": {
+    "gpx-mcp": "dist/index.js"
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "engines": {
+    "node": ">=20.10"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "generate": "node scripts/generate.mjs",
+    "generate:check": "node scripts/generate.mjs --check",
+    "spec:update": "node scripts/fetch-spec.mjs",
+    "spec:check": "node scripts/fetch-spec.mjs --check",
+    "prepublishOnly": "npm run generate:check && npm run typecheck && npm test && npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4",
+    "yaml": "^2.9.1"
+  }
+}
