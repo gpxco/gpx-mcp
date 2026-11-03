@@ -1,0 +1,25 @@
+{
+  "name": "gpx-mcp-video",
+  "private": true,
+  "description": "Setup walkthrough video for @gpxco/mcp: get a token, add the server to an MCP client.",
+  "type": "module",
+  "scripts": {
+    "prepare-shots": "node scripts/prepare-shots.mjs",
+    "music": "node scripts/make-music.mjs 60.67",
+    "studio": "npm run music && remotion studio src/index.ts",
+    "render": "npm run music && remotion render src/index.ts Setup out/gpx-mcp-setup.mp4",
+    "render:gif": "remotion render src/index.ts Setup out/gpx-mcp-setup.gif --codec=gif --every-nth-frame=2 --scale=0.5 --muted"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.535",
+    "@remotion/google-fonts": "4.0.535",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.535"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "sharp": "0.33.5",
+    "typescript": "5.9.3"
+  }
+}
