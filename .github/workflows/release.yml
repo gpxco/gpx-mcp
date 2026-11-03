@@ -22,7 +22,8 @@ jobs:
           cache: npm
       - name: Tag matches package.json
         run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
-      # Trusted publishing (OIDC) needs npm 11.5.1 or newer; Node 20 ships npm 10.
-      - run: npm install -g npm@11
+      # Node 20 ships npm 10, which has neither trusted publishing nor staged publishing.
+      - run: npm install -g npm@11.21.1
       - run: npm ci
-      - run: npm publish --tag "${{ github.event.release.prerelease && 'next' || 'latest' }}"
+      # Staged: the version goes live only when an owner approves it with 2FA (RELEASING.md).
+      - run: npm stage publish --tag "${{ github.event.release.prerelease && 'next' || 'latest' }}"

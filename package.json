@@ -1,6 +1,6 @@
 {
   "name": "@gpxco/mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "MCP server for the GPX Public API v1. Connect Claude, Cursor or any MCP client to your GPX account.",
   "license": "MIT",
   "author": "GPX <support@gpx.co>",
