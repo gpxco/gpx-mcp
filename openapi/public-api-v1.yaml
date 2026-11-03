@@ -144,7 +144,7 @@ paths:
     get:
       summary: 'List devices'
       operationId: list_devices
-      description: "Lists the account's tracking devices, filterable by name, serial, status and model. Use it to find a\ndevice id; `include=last_position` adds where each device is now."
+      description: "Lists the account's tracking devices, filterable by name, serial, status and model. Use it to find a\ndevice id; `include=last_position` adds where each device is now. Each device's page in the GPX app is\nhttps://app.gpx.co/trackers/{id}."
       parameters:
         -
           in: query
@@ -301,7 +301,7 @@ paths:
     get:
       summary: 'Show a device'
       operationId: get_device
-      description: "Returns one device with its status, sharing link and container type. `include=last_position` adds\nwhere it is now, and `include=telemetry` its battery, speed and whether it is moving."
+      description: "Returns one device with its status, sharing link and container type. `include=last_position` adds\nwhere it is now, and `include=telemetry` its battery, speed and whether it is moving. The device's page\nin the GPX app is https://app.gpx.co/trackers/{id}."
       parameters:
         -
           in: query
@@ -698,7 +698,7 @@ paths:
     get:
       summary: 'List geofences'
       operationId: list_geofences
-      description: "Lists the account's geofences, the named places devices enter and leave. Filterable by place type\nand ownership type, each multi-value."
+      description: "Lists the account's geofences, the named places devices enter and leave. Filterable by place type\nand ownership type, each multi-value. Each geofence's page in the GPX app is\nhttps://app.gpx.co/geofences/{id}."
       parameters:
         -
           in: query
@@ -954,7 +954,7 @@ paths:
     get:
       summary: 'Show a geofence'
       operationId: get_geofence
-      description: 'Returns one geofence with its geometry, place type, ownership type and alerting settings.'
+      description: "Returns one geofence with its geometry, place type, ownership type and alerting settings. The geofence's\npage in the GPX app is https://app.gpx.co/geofences/{id}."
       parameters: []
       responses:
         200:
@@ -1170,7 +1170,7 @@ paths:
     get:
       summary: 'List shipments'
       operationId: list_shipments
-      description: "Lists the account's shipments, filterable by status, carrier, origin or destination geofence, and\npickup or delivery dates. Use `search` to find one by name."
+      description: "Lists the account's shipments, filterable by status, carrier, origin or destination geofence, and\npickup or delivery dates. Use `search` to find one by name. Each shipment's page in the GPX app is\nhttps://app.gpx.co/shipments/{id}."
       parameters:
         -
           in: query
@@ -1430,7 +1430,7 @@ paths:
     get:
       summary: 'Show a shipment'
       operationId: get_shipment
-      description: 'Returns one shipment with its status, devices and stops.'
+      description: "Returns one shipment with its status, devices and stops. The shipment's page in the GPX app is\nhttps://app.gpx.co/shipments/{id}."
       parameters: []
       responses:
         200:
@@ -3113,7 +3113,7 @@ paths:
     get:
       summary: 'List groups'
       operationId: list_groups
-      description: "Lists the account's device groups. A group's devices are listed with `list_group_members`."
+      description: "Lists the account's device groups. A group's devices are listed with `list_group_members`. Each group's\npage in the GPX app is https://app.gpx.co/groups/{id}."
       parameters:
         -
           in: query
@@ -3252,7 +3252,7 @@ paths:
     get:
       summary: 'Show a group'
       operationId: get_group
-      description: 'Returns one device group. Its devices are listed with `list_group_members`.'
+      description: "Returns one device group. Its devices are listed with `list_group_members`. The group's page in the GPX\napp is https://app.gpx.co/groups/{id}."
       parameters: []
       responses:
         200:

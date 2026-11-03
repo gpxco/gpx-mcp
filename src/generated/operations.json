@@ -77,7 +77,7 @@
   {
     "name": "list_devices",
     "title": "List devices",
-    "description": "List devices\n\nLists the account's tracking devices, filterable by name, serial, status and model. Use it to find a\ndevice id; `include=last_position` adds where each device is now.",
+    "description": "List devices\n\nLists the account's tracking devices, filterable by name, serial, status and model. Use it to find a\ndevice id; `include=last_position` adds where each device is now. Each device's page in the GPX app is\nhttps://app.gpx.co/trackers/{id}.",
     "method": "GET",
     "path": "/v1/devices",
     "readOnly": true,
@@ -169,7 +169,7 @@
   {
     "name": "get_device",
     "title": "Show a device",
-    "description": "Show a device\n\nReturns one device with its status, sharing link and container type. `include=last_position` adds\nwhere it is now, and `include=telemetry` its battery, speed and whether it is moving.",
+    "description": "Show a device\n\nReturns one device with its status, sharing link and container type. `include=last_position` adds\nwhere it is now, and `include=telemetry` its battery, speed and whether it is moving. The device's page\nin the GPX app is https://app.gpx.co/trackers/{id}.",
     "method": "GET",
     "path": "/v1/devices/{deviceId}",
     "readOnly": true,
@@ -405,7 +405,7 @@
   {
     "name": "list_geofences",
     "title": "List geofences",
-    "description": "List geofences\n\nLists the account's geofences, the named places devices enter and leave. Filterable by place type\nand ownership type, each multi-value.",
+    "description": "List geofences\n\nLists the account's geofences, the named places devices enter and leave. Filterable by place type\nand ownership type, each multi-value. Each geofence's page in the GPX app is\nhttps://app.gpx.co/geofences/{id}.",
     "method": "GET",
     "path": "/v1/geofences",
     "readOnly": true,
@@ -572,7 +572,7 @@
   {
     "name": "get_geofence",
     "title": "Show a geofence",
-    "description": "Show a geofence\n\nReturns one geofence with its geometry, place type, ownership type and alerting settings.",
+    "description": "Show a geofence\n\nReturns one geofence with its geometry, place type, ownership type and alerting settings. The geofence's\npage in the GPX app is https://app.gpx.co/geofences/{id}.",
     "method": "GET",
     "path": "/v1/geofences/{geofenceId}",
     "readOnly": true,
@@ -730,7 +730,7 @@
   {
     "name": "list_shipments",
     "title": "List shipments",
-    "description": "List shipments\n\nLists the account's shipments, filterable by status, carrier, origin or destination geofence, and\npickup or delivery dates. Use `search` to find one by name.",
+    "description": "List shipments\n\nLists the account's shipments, filterable by status, carrier, origin or destination geofence, and\npickup or delivery dates. Use `search` to find one by name. Each shipment's page in the GPX app is\nhttps://app.gpx.co/shipments/{id}.",
     "method": "GET",
     "path": "/v1/shipments",
     "readOnly": true,
@@ -945,7 +945,7 @@
   {
     "name": "get_shipment",
     "title": "Show a shipment",
-    "description": "Show a shipment\n\nReturns one shipment with its status, devices and stops.",
+    "description": "Show a shipment\n\nReturns one shipment with its status, devices and stops. The shipment's page in the GPX app is\nhttps://app.gpx.co/shipments/{id}.",
     "method": "GET",
     "path": "/v1/shipments/{shipmentId}",
     "readOnly": true,
@@ -1987,7 +1987,7 @@
   {
     "name": "list_groups",
     "title": "List groups",
-    "description": "List groups\n\nLists the account's device groups. A group's devices are listed with `list_group_members`.",
+    "description": "List groups\n\nLists the account's device groups. A group's devices are listed with `list_group_members`. Each group's\npage in the GPX app is https://app.gpx.co/groups/{id}.",
     "method": "GET",
     "path": "/v1/groups",
     "readOnly": true,
@@ -2058,7 +2058,7 @@
   {
     "name": "get_group",
     "title": "Show a group",
-    "description": "Show a group\n\nReturns one device group. Its devices are listed with `list_group_members`.",
+    "description": "Show a group\n\nReturns one device group. Its devices are listed with `list_group_members`. The group's page in the GPX\napp is https://app.gpx.co/groups/{id}.",
     "method": "GET",
     "path": "/v1/groups/{groupId}",
     "readOnly": true,
