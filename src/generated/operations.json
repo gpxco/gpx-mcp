@@ -1,6 +1,6 @@
 [
   {
-    "name": "show_the_authenticated_account",
+    "name": "get_account",
     "title": "Show the authenticated account",
     "description": "Show the authenticated account\n\nReturns the account the presented token belongs to, so it also serves as a\ncredential check.",
     "method": "GET",
@@ -18,7 +18,7 @@
     }
   },
   {
-    "name": "update_the_authenticated_account",
+    "name": "update_account",
     "title": "Update the authenticated account",
     "description": "Update the authenticated account\n\nAccepts name and the customer-writable settings. Turning tracker_sharing_enabled on\nmakes every device set to public — or inheriting a public default — reachable on an\nunauthenticated URL.",
     "method": "PATCH",
@@ -37,16 +37,19 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The account name. Must not be greater than 255 characters."
         },
         "settings": {
           "type": "object",
+          "description": "Settings to change, keyed by code. Writable codes: learned_routes_available, tracker_sharing_enabled, tracker_sharing_default, shareable_link_logo_mode, shareable_link_logo_file_id, auto_archive_devices_on_shipment_completion, default_stop_radius_origin, default_stop_radius_destination, default_stop_radius_waypoint, default_route_corridor_buffer, default_geofence_alert_on_enter_exit, default_geofence_max_dwell_days, default_geofence_max_assets, default_geofence_min_assets. Any other code is a 422.",
           "properties": {
             "tracker_sharing_enabled": {
-              "type": "boolean"
+              "type": "boolean",
+              "description": "Allow public sharing links. On, every device set to public, or inheriting a public default, can be viewed without signing in."
             },
             "tracker_sharing_default": {
               "type": "string",
+              "description": "The sharing a device set to `inherit` takes.",
               "enum": [
                 "public",
                 "private"
@@ -54,6 +57,7 @@
             },
             "shareable_link_logo_mode": {
               "type": "string",
+              "description": "The logo on shared tracking pages: the GPX logo, none, or the account's own.",
               "enum": [
                 "default",
                 "none",
@@ -61,7 +65,8 @@
               ]
             },
             "shareable_link_logo_file_id": {
-              "type": "integer"
+              "type": "integer",
+              "description": "The uploaded logo file for the `custom` logo mode."
             }
           }
         }
@@ -72,7 +77,7 @@
   {
     "name": "list_devices",
     "title": "List devices",
-    "description": "List devices\n\nFilterable by name, serial, status and model.",
+    "description": "List devices\n\nLists the account's tracking devices, filterable by name, serial, status and model. Use it to find a\ndevice id; `include=last_position` adds where each device is now.",
     "method": "GET",
     "path": "/v1/devices",
     "readOnly": true,
@@ -162,9 +167,9 @@
     }
   },
   {
-    "name": "show_a_device",
+    "name": "get_device",
     "title": "Show a device",
-    "description": "Show a device",
+    "description": "Show a device\n\nReturns one device with its status, sharing link and container type. `include=last_position` adds\nwhere it is now, and `include=telemetry` its battery, speed and whether it is moving.",
     "method": "GET",
     "path": "/v1/devices/{deviceId}",
     "readOnly": true,
@@ -181,7 +186,8 @@
       "type": "object",
       "properties": {
         "deviceId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The device id, from `list_devices`."
         },
         "include": {
           "type": "array",
@@ -202,9 +208,9 @@
     }
   },
   {
-    "name": "update_a_device",
+    "name": "update_device",
     "title": "Update a device",
-    "description": "Update a device\n\nAccepts name, note, asset_value, tracker_sharing and container_type_id.",
+    "description": "Update a device\n\nChanges a device's name, note, asset value, sharing or container type. Only the fields sent change.",
     "method": "PATCH",
     "path": "/v1/devices/{deviceId}",
     "readOnly": false,
@@ -225,21 +231,24 @@
       "type": "object",
       "properties": {
         "deviceId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The device id, from `list_devices`."
         },
         "name": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The device name. Must not be greater than 255 characters."
         },
         "note": {
-          "type": "string"
+          "type": "string",
+          "description": "Free-text note. Null clears it."
         },
         "asset_value": {
           "type": "integer",
-          "description": "Must be at least 0."
+          "description": "Value of what the device tracks, in whole dollars. Null clears it. Must be at least 0."
         },
         "tracker_sharing": {
           "type": "string",
+          "description": "`public` makes the device viewable on its sharing link while the account allows sharing (`tracker_sharing_enabled`), `private` hides it, `inherit` follows the account default.",
           "enum": [
             "inherit",
             "public",
@@ -247,7 +256,8 @@
           ]
         },
         "container_type_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "A container type id from `list_container_types`. Null removes the type."
         }
       },
       "required": [
@@ -259,9 +269,9 @@
     }
   },
   {
-    "name": "list_a_devices_positions",
+    "name": "list_device_positions",
     "title": "List a device's positions",
-    "description": "List a device's positions",
+    "description": "List a device's positions\n\nReturns the positions a device recorded within a time window, 24 hours by default. Use it for where\na device has been; for where it is now, use `get_device` with `include=last_position`.",
     "method": "GET",
     "path": "/v1/devices/{deviceId}/positions",
     "readOnly": true,
@@ -282,7 +292,8 @@
       "type": "object",
       "properties": {
         "deviceId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The device id, from `list_devices`."
         },
         "location_after": {
           "type": "string",
@@ -316,9 +327,9 @@
     }
   },
   {
-    "name": "list_a_devices_events",
+    "name": "list_device_events",
     "title": "List a device's events",
-    "description": "List a device's events\n\nSame feed as GET /events, scoped to one device. Windowed on event_at.",
+    "description": "List a device's events\n\nReturns one device's events (geofence enters and exits, alarms, shipment events) within a time\nwindow: the `list_events` feed, scoped to one device.",
     "method": "GET",
     "path": "/v1/devices/{deviceId}/events",
     "readOnly": true,
@@ -342,7 +353,8 @@
       "type": "object",
       "properties": {
         "deviceId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The device id, from `list_devices`."
         },
         "event_after": {
           "type": "string",
@@ -393,7 +405,7 @@
   {
     "name": "list_geofences",
     "title": "List geofences",
-    "description": "List geofences\n\nFilterable by place_type and ownership_type, each multi-value.",
+    "description": "List geofences\n\nLists the account's geofences, the named places devices enter and leave. Filterable by place type\nand ownership type, each multi-value.",
     "method": "GET",
     "path": "/v1/geofences",
     "readOnly": true,
@@ -462,7 +474,7 @@
     }
   },
   {
-    "name": "create_a_geofence",
+    "name": "create_geofence",
     "title": "Create a geofence",
     "description": "Create a geofence\n\nRequires a location: latitude + longitude + radius_meters, or a geojson\nPolygon / MultiPolygon whose rings are closed.",
     "method": "POST",
@@ -491,50 +503,53 @@
       "properties": {
         "address": {
           "type": "string",
-          "description": "Must not be greater than 1000 characters."
+          "description": "Street address, for display. Must not be greater than 1000 characters."
         },
         "alerting": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Send enter and exit alerts for this geofence."
         },
         "latitude": {
           "type": "number",
-          "description": "Must be at least -90. Must not be greater than 90."
+          "description": "Centre of a circular geofence. Send with `longitude` and `radius_meters`. Must be at least -90. Must not be greater than 90."
         },
         "longitude": {
           "type": "number",
-          "description": "Must be at least -180. Must not be greater than 180."
+          "description": "Centre of a circular geofence. Send with `latitude` and `radius_meters`. Must be at least -180. Must not be greater than 180."
         },
         "radius_meters": {
           "type": "number",
-          "description": "Must be at least 0."
+          "description": "Radius of a circular geofence, in metres. Must be at least 0."
         },
         "geojson": {
           "type": "object",
+          "description": "A GeoJSON Polygon or MultiPolygon with closed rings, for a geofence that is not a circle. Takes the place of `latitude`, `longitude` and `radius_meters`.",
           "properties": {
             "type": {
               "type": "string",
-              "description": "This field is required when <code>geojson</code> is present."
+              "description": "`Polygon` or `MultiPolygon`. This field is required when <code>geojson</code> is present."
             }
           }
         },
         "min_assets": {
           "type": "integer",
-          "description": "Must be at least 0. Must not be greater than 500."
+          "description": "The fewest devices expected inside at once. Must be at least 0. Must not be greater than 500."
         },
         "max_assets": {
           "type": "integer",
-          "description": "Must be at least 0. Must not be greater than 500."
+          "description": "The most devices expected inside at once. Must be at least 0. Must not be greater than 500."
         },
         "allowable_dwell_seconds": {
           "type": "integer",
-          "description": "Must be at least 0. Must not be greater than 43200000."
+          "description": "How long a device is expected to stay inside, in seconds. A longer stay counts as dwelling too long. Must be at least 0. Must not be greater than 43200000."
         },
         "place_type": {
           "type": "string",
-          "description": "A place type slug, standard or one of the account's own custom types. See the place types endpoints."
+          "description": "A place type slug, standard or one of the account's own, from `list_place_types`."
         },
         "ownership_type": {
           "type": "string",
+          "description": "Whose place it is: the account's own, a customer's, a supplier's, a 3PL's, or public.",
           "enum": [
             "owned",
             "customer",
@@ -545,7 +560,7 @@
         },
         "name": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The geofence name. Must not be greater than 255 characters."
         }
       },
       "required": [
@@ -555,9 +570,9 @@
     }
   },
   {
-    "name": "show_a_geofence",
+    "name": "get_geofence",
     "title": "Show a geofence",
-    "description": "Show a geofence",
+    "description": "Show a geofence\n\nReturns one geofence with its geometry, place type, ownership type and alerting settings.",
     "method": "GET",
     "path": "/v1/geofences/{geofenceId}",
     "readOnly": true,
@@ -572,7 +587,8 @@
       "type": "object",
       "properties": {
         "geofenceId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The geofence id, from `list_geofences`."
         }
       },
       "required": [
@@ -582,9 +598,9 @@
     }
   },
   {
-    "name": "update_a_geofence",
+    "name": "update_geofence",
     "title": "Update a geofence",
-    "description": "Update a geofence",
+    "description": "Update a geofence\n\nChanges a geofence. Only the fields sent change; to move it, send `latitude`, `longitude` and\n`radius_meters` for a circle, or `geojson` for a polygon.",
     "method": "PATCH",
     "path": "/v1/geofences/{geofenceId}",
     "readOnly": false,
@@ -612,54 +628,58 @@
       "type": "object",
       "properties": {
         "geofenceId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The geofence id, from `list_geofences`."
         },
         "address": {
           "type": "string",
-          "description": "Must not be greater than 1000 characters."
+          "description": "Street address, for display. Must not be greater than 1000 characters."
         },
         "alerting": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Send enter and exit alerts for this geofence."
         },
         "latitude": {
           "type": "number",
-          "description": "Must be at least -90. Must not be greater than 90."
+          "description": "Centre of a circular geofence. Send with `longitude` and `radius_meters`. Must be at least -90. Must not be greater than 90."
         },
         "longitude": {
           "type": "number",
-          "description": "Must be at least -180. Must not be greater than 180."
+          "description": "Centre of a circular geofence. Send with `latitude` and `radius_meters`. Must be at least -180. Must not be greater than 180."
         },
         "radius_meters": {
           "type": "number",
-          "description": "Must be at least 0."
+          "description": "Radius of a circular geofence, in metres. Must be at least 0."
         },
         "geojson": {
           "type": "object",
+          "description": "A GeoJSON Polygon or MultiPolygon with closed rings, for a geofence that is not a circle. Takes the place of `latitude`, `longitude` and `radius_meters`.",
           "properties": {
             "type": {
               "type": "string",
-              "description": "This field is required when <code>geojson</code> is present."
+              "description": "`Polygon` or `MultiPolygon`. This field is required when <code>geojson</code> is present."
             }
           }
         },
         "min_assets": {
           "type": "integer",
-          "description": "Must be at least 0. Must not be greater than 500."
+          "description": "The fewest devices expected inside at once. Must be at least 0. Must not be greater than 500."
         },
         "max_assets": {
           "type": "integer",
-          "description": "Must be at least 0. Must not be greater than 500."
+          "description": "The most devices expected inside at once. Must be at least 0. Must not be greater than 500."
         },
         "allowable_dwell_seconds": {
           "type": "integer",
-          "description": "Must be at least 0. Must not be greater than 43200000."
+          "description": "How long a device is expected to stay inside, in seconds. A longer stay counts as dwelling too long. Must be at least 0. Must not be greater than 43200000."
         },
         "place_type": {
           "type": "string",
-          "description": "A place type slug, standard or one of the account's own custom types. See the place types endpoints."
+          "description": "A place type slug, standard or one of the account's own, from `list_place_types`."
         },
         "ownership_type": {
           "type": "string",
+          "description": "Whose place it is: the account's own, a customer's, a supplier's, a 3PL's, or public.",
           "enum": [
             "owned",
             "customer",
@@ -670,7 +690,7 @@
         },
         "name": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The geofence name. Must not be greater than 255 characters."
         }
       },
       "required": [
@@ -680,9 +700,9 @@
     }
   },
   {
-    "name": "delete_a_geofence",
+    "name": "delete_geofence",
     "title": "Delete a geofence",
-    "description": "Delete a geofence",
+    "description": "Delete a geofence\n\nDeletes a geofence from the account.",
     "method": "DELETE",
     "path": "/v1/geofences/{geofenceId}",
     "readOnly": false,
@@ -697,7 +717,8 @@
       "type": "object",
       "properties": {
         "geofenceId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The geofence id, from `list_geofences`."
         }
       },
       "required": [
@@ -709,7 +730,7 @@
   {
     "name": "list_shipments",
     "title": "List shipments",
-    "description": "List shipments",
+    "description": "List shipments\n\nLists the account's shipments, filterable by status, carrier, origin or destination geofence, and\npickup or delivery dates. Use `search` to find one by name.",
     "method": "GET",
     "path": "/v1/shipments",
     "readOnly": true,
@@ -801,9 +822,9 @@
     }
   },
   {
-    "name": "create_a_shipment",
+    "name": "create_shipment",
     "title": "Create a shipment",
-    "description": "Create a shipment",
+    "description": "Create a shipment\n\nCreates a shipment as a draft. Send `device_ids` and at least two `stops` to give it its itinerary\nnow; `publish_shipment` then books it.",
     "method": "POST",
     "path": "/v1/shipments",
     "readOnly": false,
@@ -824,21 +845,23 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The shipment name, often the order or load number. Must not be greater than 255 characters."
         },
         "carrier": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The carrier moving the shipment. Must not be greater than 255 characters."
         },
         "notes": {
-          "type": "string"
+          "type": "string",
+          "description": "Free-text notes."
         },
         "asset_value": {
           "type": "integer",
-          "description": "Must be at least 0. Must not be greater than 4294967295."
+          "description": "Value of the goods, in whole dollars. Must be at least 0. Must not be greater than 4294967295."
         },
         "device_ids": {
           "type": "array",
+          "description": "Devices that travel with the shipment, from `list_devices`. Requires `stops`.",
           "items": {
             "type": "integer"
           }
@@ -848,6 +871,7 @@
             "array",
             "null"
           ],
+          "description": "The itinerary, in order: at least two stops, the first the origin and the last the destination. Requires `device_ids`. Leave out both to create an empty draft.",
           "items": {
             "type": "object",
             "required": [
@@ -857,32 +881,37 @@
             "properties": {
               "sequence": {
                 "type": "integer",
-                "minimum": 0
+                "minimum": 0,
+                "description": "Position in the itinerary. Unique within the shipment; the lowest is the origin and the highest the destination."
               },
               "location_type": {
                 "type": "string",
                 "enum": [
                   "circle",
                   "geofence"
-                ]
+                ],
+                "description": "`geofence` stops at an existing geofence; `circle` stops within `radius_meters` of `center`."
               },
               "name": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "Label shown for the stop."
               },
               "geofence_id": {
                 "type": [
                   "integer",
                   "null"
-                ]
+                ],
+                "description": "Required for a `geofence` stop. A geofence id from `list_geofences`."
               },
               "center": {
                 "type": [
                   "object",
                   "null"
                 ],
+                "description": "Required for a `circle` stop.",
                 "properties": {
                   "latitude": {
                     "type": "number",
@@ -900,7 +929,8 @@
                   "null"
                 ],
                 "minimum": 50,
-                "maximum": 10000
+                "maximum": 10000,
+                "description": "Required for a `circle` stop. Radius around `center`, in metres."
               }
             }
           }
@@ -913,9 +943,9 @@
     }
   },
   {
-    "name": "show_a_shipment",
+    "name": "get_shipment",
     "title": "Show a shipment",
-    "description": "Show a shipment",
+    "description": "Show a shipment\n\nReturns one shipment with its status, devices and stops.",
     "method": "GET",
     "path": "/v1/shipments/{shipmentId}",
     "readOnly": true,
@@ -930,7 +960,8 @@
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         }
       },
       "required": [
@@ -940,9 +971,9 @@
     }
   },
   {
-    "name": "update_shipment_metadata",
-    "title": "Update shipment metadata",
-    "description": "Update shipment metadata",
+    "name": "update_shipment",
+    "title": "Update a shipment",
+    "description": "Update a shipment\n\nChanges a shipment's name, carrier, notes or asset value. Stops and route segments have their own\nendpoints.",
     "method": "PATCH",
     "path": "/v1/shipments/{shipmentId}",
     "readOnly": false,
@@ -962,22 +993,24 @@
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         },
         "name": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The shipment name, often the order or load number. Must not be greater than 255 characters."
         },
         "carrier": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The carrier moving the shipment. Null clears it. Must not be greater than 255 characters."
         },
         "notes": {
-          "type": "string"
+          "type": "string",
+          "description": "Free-text notes. Null clears them."
         },
         "asset_value": {
           "type": "integer",
-          "description": "Must be at least 0. Must not be greater than 4294967295."
+          "description": "Value of the goods, in whole dollars. Null clears it. Must be at least 0. Must not be greater than 4294967295."
         }
       },
       "required": [
@@ -987,9 +1020,9 @@
     }
   },
   {
-    "name": "soft_delete_a_shipment",
-    "title": "Soft-delete a shipment",
-    "description": "Soft-delete a shipment",
+    "name": "delete_shipment",
+    "title": "Delete a shipment",
+    "description": "Delete a shipment\n\nDeletes a shipment. Its devices stay on the account; to keep the shipment and stop tracking it,\nuse `archive_shipment` instead.",
     "method": "DELETE",
     "path": "/v1/shipments/{shipmentId}",
     "readOnly": false,
@@ -1004,7 +1037,8 @@
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         }
       },
       "required": [
@@ -1014,7 +1048,7 @@
     }
   },
   {
-    "name": "publish_a_draft_shipment",
+    "name": "publish_shipment",
     "title": "Publish a draft shipment",
     "description": "Publish a draft shipment\n\nMoves draft → booked. Publishing an already-published shipment is a no-op\nand returns the current resource (safe for retries).",
     "method": "POST",
@@ -1031,7 +1065,8 @@
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         }
       },
       "required": [
@@ -1041,7 +1076,7 @@
     }
   },
   {
-    "name": "archive_a_shipment",
+    "name": "archive_shipment",
     "title": "Archive a shipment",
     "description": "Archive a shipment\n\nMoves the shipment to `closed`, whatever its lifecycle status was. Archiving an\nalready-archived shipment is a no-op and returns the current resource (safe for\nretries). Reverse it with POST /shipments/{id}/unarchive.",
     "method": "POST",
@@ -1058,7 +1093,8 @@
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         }
       },
       "required": [
@@ -1068,7 +1104,7 @@
     }
   },
   {
-    "name": "unarchive_a_shipment",
+    "name": "unarchive_shipment",
     "title": "Unarchive a shipment",
     "description": "Unarchive a shipment\n\nClears `closed` and returns the shipment to the status its dates imply. Unarchiving\na shipment that is not archived is a no-op and returns the current resource.",
     "method": "POST",
@@ -1085,7 +1121,8 @@
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         }
       },
       "required": [
@@ -1095,9 +1132,9 @@
     }
   },
   {
-    "name": "list_stops_for_a_shipment",
+    "name": "list_shipment_stops",
     "title": "List stops for a shipment",
-    "description": "List stops for a shipment",
+    "description": "List stops for a shipment\n\nReturns a shipment's itinerary in order. `stop_type` marks each stop as the origin, the destination\nor a stop in between.",
     "method": "GET",
     "path": "/v1/shipments/{shipmentId}/stops",
     "readOnly": true,
@@ -1112,7 +1149,8 @@
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         }
       },
       "required": [
@@ -1122,9 +1160,9 @@
     }
   },
   {
-    "name": "create_stops_for_a_shipmentwhen_none_exist_yet",
-    "title": "Create stops for a shipment (when none exist yet)",
-    "description": "Create stops for a shipment (when none exist yet)",
+    "name": "create_shipment_stops",
+    "title": "Create stops for a shipment",
+    "description": "Create stops for a shipment\n\nSets the itinerary of a shipment that has no stops yet. A shipment that already has stops is a 422;\nchange its itinerary with `replace_shipment_stops`.",
     "method": "POST",
     "path": "/v1/shipments/{shipmentId}/stops",
     "readOnly": false,
@@ -1133,25 +1171,76 @@
         "shipmentId"
       ],
       "query": [],
-      "body": []
+      "body": [
+        "stops"
+      ]
     },
     "inputSchema": {
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
+        },
+        "stops": {
+          "type": "array",
+          "description": "The itinerary, at least two stops. These fields use the upstream spelling (`type`, `center.lat`, `radius`), not the one stop reads return.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sequence": {
+                "type": "integer",
+                "description": "Position in the itinerary, unique within the shipment. The lowest is the origin and the highest the destination."
+              },
+              "type": {
+                "type": "string",
+                "description": "`geofence` stops at an existing geofence; `circle` stops within `radius` of `center`."
+              },
+              "name": {
+                "type": "string",
+                "description": "Label shown for the stop."
+              },
+              "geofence_id": {
+                "type": "integer",
+                "description": "Required for a `geofence` stop. A geofence id from `list_geofences`."
+              },
+              "center": {
+                "type": "object",
+                "description": "Required for a `circle` stop.",
+                "properties": {
+                  "lat": {
+                    "type": "number",
+                    "description": "Latitude."
+                  },
+                  "lng": {
+                    "type": "number",
+                    "description": "Longitude."
+                  }
+                }
+              },
+              "radius": {
+                "type": "integer",
+                "description": "Required for a `circle` stop. Radius around `center`, in metres."
+              }
+            },
+            "required": [
+              "sequence",
+              "type"
+            ]
+          }
         }
       },
       "required": [
-        "shipmentId"
+        "shipmentId",
+        "stops"
       ],
       "additionalProperties": false
     }
   },
   {
-    "name": "sync_stops_for_a_shipmentfull_replace",
-    "title": "Sync stops for a shipment (full replace)",
-    "description": "Sync stops for a shipment (full replace)",
+    "name": "replace_shipment_stops",
+    "title": "Replace stops for a shipment",
+    "description": "Replace stops for a shipment\n\nReplaces a shipment's whole itinerary with the stops sent; a stop left out is deleted. Any change\nother than a radius also deletes the shipment's route segments.",
     "method": "PUT",
     "path": "/v1/shipments/{shipmentId}/stops",
     "readOnly": false,
@@ -1160,25 +1249,80 @@
         "shipmentId"
       ],
       "query": [],
-      "body": []
+      "body": [
+        "stops"
+      ]
     },
     "inputSchema": {
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
+        },
+        "stops": {
+          "type": "array",
+          "description": "The itinerary, at least two stops. These fields use the upstream spelling (`type`, `center.lat`, `radius`), not the one stop reads return.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sequence": {
+                "type": "integer",
+                "description": "Position in the itinerary, unique within the shipment. The lowest is the origin and the highest the destination."
+              },
+              "type": {
+                "type": "string",
+                "description": "`geofence` stops at an existing geofence; `circle` stops within `radius` of `center`."
+              },
+              "name": {
+                "type": "string",
+                "description": "Label shown for the stop."
+              },
+              "geofence_id": {
+                "type": "integer",
+                "description": "Required for a `geofence` stop. A geofence id from `list_geofences`."
+              },
+              "center": {
+                "type": "object",
+                "description": "Required for a `circle` stop.",
+                "properties": {
+                  "lat": {
+                    "type": "number",
+                    "description": "Latitude."
+                  },
+                  "lng": {
+                    "type": "number",
+                    "description": "Longitude."
+                  }
+                }
+              },
+              "radius": {
+                "type": "integer",
+                "description": "Required for a `circle` stop. Radius around `center`, in metres."
+              },
+              "id": {
+                "type": "integer",
+                "description": "Keep an existing stop, by its id from `list_shipment_stops`. Leave it out to add a new stop."
+              }
+            },
+            "required": [
+              "sequence",
+              "type"
+            ]
+          }
         }
       },
       "required": [
-        "shipmentId"
+        "shipmentId",
+        "stops"
       ],
       "additionalProperties": false
     }
   },
   {
-    "name": "delete_a_stop",
+    "name": "delete_shipment_stop",
     "title": "Delete a stop",
-    "description": "Delete a stop",
+    "description": "Delete a stop\n\nRemoves one stop and the route segments that start or end at it. The other stops keep their\nsequence numbers.",
     "method": "DELETE",
     "path": "/v1/shipments/{shipmentId}/stops/{stopId}",
     "readOnly": false,
@@ -1194,11 +1338,12 @@
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         },
         "stopId": {
           "type": "integer",
-          "description": "The stop ID."
+          "description": "The stop id, from `list_shipment_stops`."
         }
       },
       "required": [
@@ -1209,9 +1354,9 @@
     }
   },
   {
-    "name": "list_route_segments_for_a_shipment",
+    "name": "list_shipment_routes",
     "title": "List route segments for a shipment",
-    "description": "List route segments for a shipment",
+    "description": "List route segments for a shipment\n\nReturns a shipment's route segments: the leg between two of its stops, the corridor width around it\nand the routes it may take.",
     "method": "GET",
     "path": "/v1/shipments/{shipmentId}/routes",
     "readOnly": true,
@@ -1226,7 +1371,8 @@
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         }
       },
       "required": [
@@ -1236,9 +1382,9 @@
     }
   },
   {
-    "name": "create_a_route_segment",
+    "name": "create_shipment_route",
     "title": "Create a route segment",
-    "description": "Create a route segment",
+    "description": "Create a route segment\n\nAdds a route segment between two of the shipment's stops, with an optional corridor width and route\npolylines.",
     "method": "POST",
     "path": "/v1/shipments/{shipmentId}/routes",
     "readOnly": false,
@@ -1247,25 +1393,65 @@
         "shipmentId"
       ],
       "query": [],
-      "body": []
+      "body": [
+        "from_stop_id",
+        "to_stop_id",
+        "corridor_width_meters",
+        "route_options"
+      ]
     },
     "inputSchema": {
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
+        },
+        "from_stop_id": {
+          "type": "integer",
+          "description": "The stop the segment starts at, from `list_shipment_stops`."
+        },
+        "to_stop_id": {
+          "type": "integer",
+          "description": "The stop the segment ends at; not the same stop."
+        },
+        "corridor_width_meters": {
+          "type": "integer",
+          "description": "Width of the corridor around the route, in metres."
+        },
+        "route_options": {
+          "type": "array",
+          "description": "The routes the segment may take, each a polyline.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "encoded_polyline": {
+                "type": "string",
+                "description": "A Google encoded polyline."
+              },
+              "name": {
+                "type": "string",
+                "description": "Label for the route."
+              }
+            },
+            "required": [
+              "encoded_polyline"
+            ]
+          }
         }
       },
       "required": [
-        "shipmentId"
+        "shipmentId",
+        "from_stop_id",
+        "to_stop_id"
       ],
       "additionalProperties": false
     }
   },
   {
-    "name": "show_a_route_segment",
+    "name": "get_shipment_route",
     "title": "Show a route segment",
-    "description": "Show a route segment",
+    "description": "Show a route segment\n\nReturns one route segment of a shipment.",
     "method": "GET",
     "path": "/v1/shipments/{shipmentId}/routes/{routeId}",
     "readOnly": true,
@@ -1281,11 +1467,12 @@
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         },
         "routeId": {
           "type": "integer",
-          "description": "The route segment ID."
+          "description": "The route segment id, from `list_shipment_routes`."
         }
       },
       "required": [
@@ -1296,9 +1483,9 @@
     }
   },
   {
-    "name": "update_a_route_segment",
+    "name": "update_shipment_route",
     "title": "Update a route segment",
-    "description": "Update a route segment",
+    "description": "Update a route segment\n\nChanges a route segment's stops, corridor width or route options. Only the fields sent change.",
     "method": "PATCH",
     "path": "/v1/shipments/{shipmentId}/routes/{routeId}",
     "readOnly": false,
@@ -1308,17 +1495,55 @@
         "routeId"
       ],
       "query": [],
-      "body": []
+      "body": [
+        "from_stop_id",
+        "to_stop_id",
+        "corridor_width_meters",
+        "route_options"
+      ]
     },
     "inputSchema": {
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         },
         "routeId": {
           "type": "integer",
-          "description": "The route segment ID."
+          "description": "The route segment id, from `list_shipment_routes`."
+        },
+        "from_stop_id": {
+          "type": "integer",
+          "description": "The stop the segment starts at, from `list_shipment_stops`."
+        },
+        "to_stop_id": {
+          "type": "integer",
+          "description": "The stop the segment ends at; not the same stop."
+        },
+        "corridor_width_meters": {
+          "type": "integer",
+          "description": "Width of the corridor around the route, in metres."
+        },
+        "route_options": {
+          "type": "array",
+          "description": "The routes the segment may take, each a polyline.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "encoded_polyline": {
+                "type": "string",
+                "description": "A Google encoded polyline."
+              },
+              "name": {
+                "type": "string",
+                "description": "Label for the route."
+              }
+            },
+            "required": [
+              "encoded_polyline"
+            ]
+          }
         }
       },
       "required": [
@@ -1329,9 +1554,9 @@
     }
   },
   {
-    "name": "delete_a_route_segment",
+    "name": "delete_shipment_route",
     "title": "Delete a route segment",
-    "description": "Delete a route segment",
+    "description": "Delete a route segment\n\nDeletes a route segment. The stops it joined are untouched.",
     "method": "DELETE",
     "path": "/v1/shipments/{shipmentId}/routes/{routeId}",
     "readOnly": false,
@@ -1347,11 +1572,12 @@
       "type": "object",
       "properties": {
         "shipmentId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The shipment id, from `list_shipments`."
         },
         "routeId": {
           "type": "integer",
-          "description": "The route segment ID."
+          "description": "The route segment id, from `list_shipment_routes`."
         }
       },
       "required": [
@@ -1405,7 +1631,7 @@
     }
   },
   {
-    "name": "invite_a_user",
+    "name": "invite_user",
     "title": "Invite a user",
     "description": "Invite a user\n\nCreates the account relation and emails the invitation. An email that already\nbelongs to a user on another account is attached to this one; an email that is\nalready a member here is a 409 — changing a teammate is PATCH /users/{id}.",
     "method": "POST",
@@ -1424,13 +1650,15 @@
       "properties": {
         "email": {
           "type": "string",
-          "description": "Must be a valid email address. Must not be greater than 255 characters."
+          "description": "Where the invitation is sent. Must be a valid email address. Must not be greater than 255 characters."
         },
         "permissions": {
           "type": "object",
+          "description": "What the new teammate can do and which devices they can see.",
           "properties": {
             "role": {
               "type": "string",
+              "description": "The teammate's role on the account.",
               "enum": [
                 "admin",
                 "manager",
@@ -1439,16 +1667,19 @@
               ]
             },
             "full_device_access": {
-              "type": "boolean"
+              "type": "boolean",
+              "description": "See every device on the account. Off, they see only the devices and groups granted below."
             },
             "device_ids": {
               "type": "array",
+              "description": "Devices they can see, from `list_devices`.",
               "items": {
                 "type": "integer"
               }
             },
             "group_ids": {
               "type": "array",
+              "description": "Device groups whose devices they can see, from `list_groups`.",
               "items": {
                 "type": "integer"
               }
@@ -1464,9 +1695,9 @@
     }
   },
   {
-    "name": "show_a_user",
+    "name": "get_user",
     "title": "Show a user",
-    "description": "Show a user",
+    "description": "Show a user\n\nReturns one teammate with their role and their direct device and group grants.",
     "method": "GET",
     "path": "/v1/users/{userId}",
     "readOnly": true,
@@ -1481,7 +1712,8 @@
       "type": "object",
       "properties": {
         "userId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The user id, from `list_users`."
         }
       },
       "required": [
@@ -1491,7 +1723,7 @@
     }
   },
   {
-    "name": "remove_a_user_from_the_account",
+    "name": "remove_user",
     "title": "Remove a user from the account",
     "description": "Remove a user from the account\n\nDetaches the teammate and their grants. The user record itself survives — they may\nbelong to other accounts. Removing the account's only admin is a 409.",
     "method": "DELETE",
@@ -1508,7 +1740,8 @@
       "type": "object",
       "properties": {
         "userId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The user id, from `list_users`."
         }
       },
       "required": [
@@ -1520,7 +1753,7 @@
   {
     "name": "list_container_types",
     "title": "List container types",
-    "description": "List container types",
+    "description": "List container types\n\nLists the account's container types, the labels for the returnable containers its devices travel\nin. Only on accounts with returnable containers; elsewhere every container type call is a 404.",
     "method": "GET",
     "path": "/v1/container-types",
     "readOnly": true,
@@ -1561,7 +1794,7 @@
     }
   },
   {
-    "name": "create_a_container_type",
+    "name": "create_container_type",
     "title": "Create a container type",
     "description": "Create a container type\n\nNames are free text; a name that already exists creates a second type.",
     "method": "POST",
@@ -1579,7 +1812,7 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The container type name. Must not be greater than 255 characters."
         }
       },
       "required": [
@@ -1589,9 +1822,9 @@
     }
   },
   {
-    "name": "show_a_container_type",
+    "name": "get_container_type",
     "title": "Show a container type",
-    "description": "Show a container type",
+    "description": "Show a container type\n\nReturns one container type.",
     "method": "GET",
     "path": "/v1/container-types/{containerTypeId}",
     "readOnly": true,
@@ -1606,7 +1839,8 @@
       "type": "object",
       "properties": {
         "containerTypeId": {
-          "type": "string"
+          "type": "integer",
+          "description": "The container type id, from `list_container_types`."
         }
       },
       "required": [
@@ -1616,7 +1850,7 @@
     }
   },
   {
-    "name": "rename_a_container_type",
+    "name": "update_container_type",
     "title": "Rename a container type",
     "description": "Rename a container type\n\nDevices reference the type by id, so they carry the new name with them.",
     "method": "PATCH",
@@ -1635,11 +1869,12 @@
       "type": "object",
       "properties": {
         "containerTypeId": {
-          "type": "string"
+          "type": "integer",
+          "description": "The container type id, from `list_container_types`."
         },
         "name": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The container type name. Must not be greater than 255 characters."
         }
       },
       "required": [
@@ -1650,7 +1885,7 @@
     }
   },
   {
-    "name": "delete_a_container_type",
+    "name": "delete_container_type",
     "title": "Delete a container type",
     "description": "Delete a container type\n\nAllowed while in use: the devices carrying it are kept and lose their type.",
     "method": "DELETE",
@@ -1667,7 +1902,8 @@
       "type": "object",
       "properties": {
         "containerTypeId": {
-          "type": "string"
+          "type": "integer",
+          "description": "The container type id, from `list_container_types`."
         }
       },
       "required": [
@@ -1677,9 +1913,9 @@
     }
   },
   {
-    "name": "list_account_events",
+    "name": "list_events",
     "title": "List account events",
-    "description": "List account events\n\nWindowed on event_after / event_before (event_at). Filterable by device_id,\ngeofence_id, shipment_id, and event_type.",
+    "description": "List account events\n\nReturns the account's event feed across every device (geofence enters and exits, alarms, shipment\nevents) within a time window, 24 hours by default. Filter by device, geofence, shipment or event\ntype; a geofence's enter and exit history is this feed filtered by `geofence_id`.",
     "method": "GET",
     "path": "/v1/events",
     "readOnly": true,
@@ -1751,7 +1987,7 @@
   {
     "name": "list_groups",
     "title": "List groups",
-    "description": "List groups",
+    "description": "List groups\n\nLists the account's device groups. A group's devices are listed with `list_group_members`.",
     "method": "GET",
     "path": "/v1/groups",
     "readOnly": true,
@@ -1792,7 +2028,7 @@
     }
   },
   {
-    "name": "create_a_group",
+    "name": "create_group",
     "title": "Create a group",
     "description": "Create a group\n\nA group is created empty; members are added one at a time through\nPOST /groups/{id}/members.",
     "method": "POST",
@@ -1810,7 +2046,7 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The group name. Must not be greater than 255 characters."
         }
       },
       "required": [
@@ -1820,9 +2056,9 @@
     }
   },
   {
-    "name": "show_a_group",
+    "name": "get_group",
     "title": "Show a group",
-    "description": "Show a group",
+    "description": "Show a group\n\nReturns one device group. Its devices are listed with `list_group_members`.",
     "method": "GET",
     "path": "/v1/groups/{groupId}",
     "readOnly": true,
@@ -1837,7 +2073,8 @@
       "type": "object",
       "properties": {
         "groupId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The group id, from `list_groups`."
         }
       },
       "required": [
@@ -1847,7 +2084,7 @@
     }
   },
   {
-    "name": "update_a_group",
+    "name": "update_group",
     "title": "Update a group",
     "description": "Update a group\n\nA member list in the body is a 422: membership is incremental.",
     "method": "PATCH",
@@ -1866,11 +2103,12 @@
       "type": "object",
       "properties": {
         "groupId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The group id, from `list_groups`."
         },
         "name": {
           "type": "string",
-          "description": "Must not be greater than 255 characters."
+          "description": "The group name. Must not be greater than 255 characters."
         }
       },
       "required": [
@@ -1881,7 +2119,7 @@
     }
   },
   {
-    "name": "delete_a_group",
+    "name": "delete_group",
     "title": "Delete a group",
     "description": "Delete a group\n\nThe devices in it are untouched — a group is a container, not an owner.",
     "method": "DELETE",
@@ -1898,7 +2136,8 @@
       "type": "object",
       "properties": {
         "groupId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The group id, from `list_groups`."
         }
       },
       "required": [
@@ -1908,7 +2147,7 @@
     }
   },
   {
-    "name": "list_a_groups_members",
+    "name": "list_group_members",
     "title": "List a group's members",
     "description": "List a group's members\n\nPhase 1 groups are device-only, so every member carries type \"device\".",
     "method": "GET",
@@ -1928,7 +2167,8 @@
       "type": "object",
       "properties": {
         "groupId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The group id, from `list_groups`."
         },
         "per_page": {
           "type": "integer",
@@ -1946,7 +2186,7 @@
     }
   },
   {
-    "name": "add_a_member",
+    "name": "add_group_member",
     "title": "Add a member",
     "description": "Add a member\n\nIncremental. Adding a device that is already a member is still a 200.",
     "method": "POST",
@@ -1965,10 +2205,12 @@
       "type": "object",
       "properties": {
         "groupId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The group id, from `list_groups`."
         },
         "member_id": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The device to add, from `list_devices`."
         }
       },
       "required": [
@@ -1979,7 +2221,7 @@
     }
   },
   {
-    "name": "remove_a_member",
+    "name": "remove_group_member",
     "title": "Remove a member",
     "description": "Remove a member\n\nRemoving a device that was not a member is still a 204.",
     "method": "DELETE",
@@ -1997,10 +2239,12 @@
       "type": "object",
       "properties": {
         "groupId": {
-          "type": "integer"
+          "type": "integer",
+          "description": "The group id, from `list_groups`."
         },
         "memberId": {
-          "type": "string"
+          "type": "integer",
+          "description": "The id of a device in the group, from `list_group_members`."
         }
       },
       "required": [
@@ -2041,9 +2285,9 @@
     }
   },
   {
-    "name": "create_a_custom_place_type",
+    "name": "create_place_type",
     "title": "Create a custom place type",
-    "description": "Create a custom place type",
+    "description": "Create a custom place type\n\nAdds a place type of the account's own under a standard parent, so geofences can use its slug as\ntheir `place_type`.",
     "method": "POST",
     "path": "/v1/place-types",
     "readOnly": false,
@@ -2081,9 +2325,9 @@
     }
   },
   {
-    "name": "show_a_place_type",
+    "name": "get_place_type",
     "title": "Show a place type",
-    "description": "Show a place type",
+    "description": "Show a place type\n\nReturns one place type, standard or custom.",
     "method": "GET",
     "path": "/v1/place-types/{placeTypeSlug}",
     "readOnly": true,
@@ -2099,7 +2343,7 @@
       "properties": {
         "placeTypeSlug": {
           "type": "string",
-          "description": "A standard slug or one of the account's custom slugs."
+          "description": "A place type slug, from `list_place_types`. Standard types can be read but not changed or deleted."
         }
       },
       "required": [
@@ -2109,7 +2353,7 @@
     }
   },
   {
-    "name": "update_a_custom_place_type",
+    "name": "update_place_type",
     "title": "Update a custom place type",
     "description": "Update a custom place type\n\nGeofences follow a rename and a new parent. Standard types cannot be changed.",
     "method": "PATCH",
@@ -2131,7 +2375,7 @@
       "properties": {
         "placeTypeSlug": {
           "type": "string",
-          "description": "A standard slug or one of the account's custom slugs."
+          "description": "A place type slug, from `list_place_types`. Standard types can be read but not changed or deleted."
         },
         "name": {
           "type": "string",
@@ -2153,7 +2397,7 @@
     }
   },
   {
-    "name": "delete_a_custom_place_type",
+    "name": "delete_place_type",
     "title": "Delete a custom place type",
     "description": "Delete a custom place type\n\nGeofences using it move to its parent type. Standard types cannot be deleted.",
     "method": "DELETE",
@@ -2171,7 +2415,7 @@
       "properties": {
         "placeTypeSlug": {
           "type": "string",
-          "description": "A standard slug or one of the account's custom slugs."
+          "description": "A place type slug, from `list_place_types`. Standard types can be read but not changed or deleted."
         }
       },
       "required": [

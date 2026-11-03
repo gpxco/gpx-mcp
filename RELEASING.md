@@ -34,5 +34,5 @@ Releases are published to npm as [`@gpxco/mcp`](https://www.npmjs.com/package/@g
 ## Setup, once
 
 - An npm organization named `gpxco`, owned by GPX, with at least two owners.
-- The package published once by hand by an owner (`npm publish` from a clean checkout of `main`), because npm can only attach a trusted publisher to a package that exists.
-- On npmjs.com, under the package's **Settings › Trusted publishing**, a GitHub Actions publisher: organization `gpxco`, repository `gpx-mcp`, workflow `release.yml`. The workflow then publishes over OIDC, so there is no npm token to store, expire or rotate.
+- The package published once by hand by an owner (`npm ci && npm publish --provenance=false` from a clean checkout of `main`), because npm can only attach a trusted publisher to a package that exists. Provenance is generated only in GitHub Actions, so the manual publish skips it; every release after that has it.
+- On npmjs.com, under the package's **Settings › Trusted publishing**, a GitHub Actions publisher: organization `gpxco`, repository `gpx-mcp`, workflow `release.yml`. The workflow then publishes over OIDC, so there is no npm token to store, expire or rotate. Then set the package's **Publishing access** to require two-factor authentication and disallow tokens.

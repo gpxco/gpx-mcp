@@ -25,7 +25,7 @@ describe('tool listing', () => {
   it('lists every tool when writes are on', async () => {
     const tools = await listTools(true);
     expect(tools.length).toBe(operations.length);
-    expect(tools.find((tool) => tool.name === 'delete_a_geofence')?.annotations?.destructiveHint).toBe(true);
+    expect(tools.find((tool) => tool.name === 'delete_geofence')?.annotations?.destructiveHint).toBe(true);
   });
 });
 

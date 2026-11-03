@@ -14,7 +14,7 @@ paths:
   /v1/account:
     get:
       summary: 'Show the authenticated account'
-      operationId: showTheAuthenticatedAccount
+      operationId: get_account
       description: "Returns the account the presented token belongs to, so it also serves as a\ncredential check."
       parameters: []
       responses:
@@ -58,7 +58,7 @@ paths:
         - Account
     patch:
       summary: 'Update the authenticated account'
-      operationId: updateTheAuthenticatedAccount
+      operationId: update_account
       description: "Accepts name and the customer-writable settings. Turning tracker_sharing_enabled on\nmakes every device set to public — or inheriting a public default — reachable on an\nunauthenticated URL."
       parameters: []
       responses:
@@ -109,27 +109,28 @@ paths:
               properties:
                 name:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: jcqqqpmcouwcvd
+                  description: 'The account name. Must not be greater than 255 characters.'
+                  example: 'Acme Logistics'
                 settings:
                   type: object
-                  description: ''
-                  example: null
+                  description: 'Settings to change, keyed by code. Writable codes: learned_routes_available, tracker_sharing_enabled, tracker_sharing_default, shareable_link_logo_mode, shareable_link_logo_file_id, auto_archive_devices_on_shipment_completion, default_stop_radius_origin, default_stop_radius_destination, default_stop_radius_waypoint, default_route_corridor_buffer, default_geofence_alert_on_enter_exit, default_geofence_max_dwell_days, default_geofence_max_assets, default_geofence_min_assets. Any other code is a 422.'
+                  example:
+                    tracker_sharing_default: private
                   properties:
                     tracker_sharing_enabled:
                       type: boolean
-                      description: ''
-                      example: true
+                      description: 'Allow public sharing links. On, every device set to public, or inheriting a public default, can be viewed without signing in.'
+                      example: false
                     tracker_sharing_default:
                       type: string
-                      description: ''
-                      example: public
+                      description: 'The sharing a device set to `inherit` takes.'
+                      example: private
                       enum:
                         - public
                         - private
                     shareable_link_logo_mode:
                       type: string
-                      description: ''
+                      description: "The logo on shared tracking pages: the GPX logo, none, or the account's own."
                       example: default
                       enum:
                         - default
@@ -137,13 +138,13 @@ paths:
                         - custom
                     shareable_link_logo_file_id:
                       type: integer
-                      description: ''
-                      example: 18
+                      description: 'The uploaded logo file for the `custom` logo mode.'
+                      example: 3301
   /v1/devices:
     get:
       summary: 'List devices'
-      operationId: listDevices
-      description: 'Filterable by name, serial, status and model.'
+      operationId: list_devices
+      description: "Lists the account's tracking devices, filterable by name, serial, status and model. Use it to find a\ndevice id; `include=last_position` adds where each device is now."
       parameters:
         -
           in: query
@@ -299,8 +300,8 @@ paths:
   '/v1/devices/{deviceId}':
     get:
       summary: 'Show a device'
-      operationId: showADevice
-      description: ''
+      operationId: get_device
+      description: "Returns one device with its status, sharing link and container type. `include=last_position` adds\nwhere it is now, and `include=telemetry` its battery, speed and whether it is moving."
       parameters:
         -
           in: query
@@ -360,8 +361,8 @@ paths:
         - Devices
     patch:
       summary: 'Update a device'
-      operationId: updateADevice
-      description: 'Accepts name, note, asset_value, tracker_sharing and container_type_id.'
+      operationId: update_device
+      description: "Changes a device's name, note, asset value, sharing or container type. Only the fields sent change."
       parameters: []
       responses:
         200:
@@ -411,28 +412,28 @@ paths:
               properties:
                 name:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: tdqdrkutsejyeeknigkh
+                  description: 'The device name. Must not be greater than 255 characters.'
+                  example: 'Trailer 42'
                 note:
                   type: string
-                  description: ''
-                  example: sed
+                  description: 'Free-text note. Null clears it.'
+                  example: 'Mounted under the rear axle.'
                 asset_value:
                   type: integer
-                  description: 'Must be at least 0.'
-                  example: 51
+                  description: 'Value of what the device tracks, in whole dollars. Null clears it. Must be at least 0.'
+                  example: 25000
                 tracker_sharing:
                   type: string
-                  description: ''
-                  example: private
+                  description: '`public` makes the device viewable on its sharing link while the account allows sharing (`tracker_sharing_enabled`), `private` hides it, `inherit` follows the account default.'
+                  example: inherit
                   enum:
                     - inherit
                     - public
                     - private
                 container_type_id:
                   type: integer
-                  description: ''
-                  example: 18
+                  description: 'A container type id from `list_container_types`. Null removes the type.'
+                  example: 7
               required:
                 - name
                 - tracker_sharing
@@ -440,16 +441,16 @@ paths:
       -
         in: path
         name: deviceId
-        description: ''
-        example: 6
+        description: 'The device id, from `list_devices`.'
+        example: 48213
         required: true
         schema:
           type: integer
   '/v1/devices/{deviceId}/positions':
     get:
       summary: "List a device's positions"
-      operationId: listADevicesPositions
-      description: ''
+      operationId: list_device_positions
+      description: "Returns the positions a device recorded within a time window, 24 hours by default. Use it for where\na device has been; for where it is now, use `get_device` with `include=last_position`."
       parameters:
         -
           in: query
@@ -547,16 +548,16 @@ paths:
       -
         in: path
         name: deviceId
-        description: ''
-        example: 11
+        description: 'The device id, from `list_devices`.'
+        example: 48213
         required: true
         schema:
           type: integer
   '/v1/devices/{deviceId}/events':
     get:
       summary: "List a device's events"
-      operationId: listADevicesEvents
-      description: 'Same feed as GET /events, scoped to one device. Windowed on event_at.'
+      operationId: list_device_events
+      description: "Returns one device's events (geofence enters and exits, alarms, shipment events) within a time\nwindow: the `list_events` feed, scoped to one device."
       parameters:
         -
           in: query
@@ -645,23 +646,59 @@ paths:
               - geofence-exit
             items:
               type: string
-      responses: {  }
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - Devices
     parameters:
       -
         in: path
         name: deviceId
-        description: ''
-        example: 12
+        description: 'The device id, from `list_devices`.'
+        example: 48213
         required: true
         schema:
           type: integer
   /v1/geofences:
     get:
       summary: 'List geofences'
-      operationId: listGeofences
-      description: 'Filterable by place_type and ownership_type, each multi-value.'
+      operationId: list_geofences
+      description: "Lists the account's geofences, the named places devices enter and leave. Filterable by place type\nand ownership type, each multi-value."
       parameters:
         -
           in: query
@@ -785,7 +822,7 @@ paths:
         - Geofences
     post:
       summary: 'Create a geofence'
-      operationId: createAGeofence
+      operationId: create_geofence
       description: "Requires a location: latitude + longitude + radius_meters, or a geojson\nPolygon / MultiPolygon whose rings are closed."
       parameters: []
       responses:
@@ -836,53 +873,71 @@ paths:
               properties:
                 address:
                   type: string
-                  description: 'Must not be greater than 1000 characters.'
-                  example: uoqeg
+                  description: 'Street address, for display. Must not be greater than 1000 characters.'
+                  example: '1200 W Fulton St, Chicago, IL 60607'
                 alerting:
                   type: boolean
-                  description: ''
+                  description: 'Send enter and exit alerts for this geofence.'
                   example: false
                 latitude:
                   type: number
-                  description: 'Must be at least -90. Must not be greater than 90.'
-                  example: 25
+                  description: 'Centre of a circular geofence. Send with `longitude` and `radius_meters`. Must be at least -90. Must not be greater than 90.'
+                  example: 41.8868
                 longitude:
                   type: number
-                  description: 'Must be at least -180. Must not be greater than 180.'
-                  example: 11
+                  description: 'Centre of a circular geofence. Send with `latitude` and `radius_meters`. Must be at least -180. Must not be greater than 180.'
+                  example: -87.6526
                 radius_meters:
                   type: number
-                  description: 'Must be at least 0.'
-                  example: 41
+                  description: 'Radius of a circular geofence, in metres. Must be at least 0.'
+                  example: 250.0
                 geojson:
                   type: object
-                  description: ''
-                  example: null
+                  description: 'A GeoJSON Polygon or MultiPolygon with closed rings, for a geofence that is not a circle. Takes the place of `latitude`, `longitude` and `radius_meters`.'
+                  example:
+                    type: Polygon
+                    coordinates:
+                      -
+                        -
+                          - -87.654
+                          - 41.886
+                        -
+                          - -87.651
+                          - 41.886
+                        -
+                          - -87.651
+                          - 41.888
+                        -
+                          - -87.654
+                          - 41.888
+                        -
+                          - -87.654
+                          - 41.886
                   properties:
                     type:
                       type: string
-                      description: 'This field is required when <code>geojson</code> is present.'
-                      example: voluptates
+                      description: '`Polygon` or `MultiPolygon`. This field is required when <code>geojson</code> is present.'
+                      example: Polygon
                 min_assets:
                   type: integer
-                  description: 'Must be at least 0. Must not be greater than 500.'
-                  example: 15
+                  description: 'The fewest devices expected inside at once. Must be at least 0. Must not be greater than 500.'
+                  example: 0
                 max_assets:
                   type: integer
-                  description: 'Must be at least 0. Must not be greater than 500.'
-                  example: 25
+                  description: 'The most devices expected inside at once. Must be at least 0. Must not be greater than 500.'
+                  example: 50
                 allowable_dwell_seconds:
                   type: integer
-                  description: 'Must be at least 0. Must not be greater than 43200000.'
-                  example: 23
+                  description: 'How long a device is expected to stay inside, in seconds. A longer stay counts as dwelling too long. Must be at least 0. Must not be greater than 43200000.'
+                  example: 86400
                 place_type:
                   type: string
-                  description: "A place type slug, standard or one of the account's own custom types. See the place types endpoints."
+                  description: "A place type slug, standard or one of the account's own, from `list_place_types`."
                   example: warehouse
                 ownership_type:
                   type: string
-                  description: ''
-                  example: public
+                  description: "Whose place it is: the account's own, a customer's, a supplier's, a 3PL's, or public."
+                  example: owned
                   enum:
                     - owned
                     - customer
@@ -891,15 +946,15 @@ paths:
                     - public
                 name:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: fuzmestyzhifxjj
+                  description: 'The geofence name. Must not be greater than 255 characters.'
+                  example: 'Chicago DC'
               required:
                 - name
   '/v1/geofences/{geofenceId}':
     get:
       summary: 'Show a geofence'
-      operationId: showAGeofence
-      description: ''
+      operationId: get_geofence
+      description: 'Returns one geofence with its geometry, place type, ownership type and alerting settings.'
       parameters: []
       responses:
         200:
@@ -942,8 +997,8 @@ paths:
         - Geofences
     patch:
       summary: 'Update a geofence'
-      operationId: updateAGeofence
-      description: ''
+      operationId: update_geofence
+      description: "Changes a geofence. Only the fields sent change; to move it, send `latitude`, `longitude` and\n`radius_meters` for a circle, or `geojson` for a polygon."
       parameters: []
       responses:
         200:
@@ -993,53 +1048,71 @@ paths:
               properties:
                 address:
                   type: string
-                  description: 'Must not be greater than 1000 characters.'
-                  example: gwunxufomzs
+                  description: 'Street address, for display. Must not be greater than 1000 characters.'
+                  example: '1200 W Fulton St, Chicago, IL 60607'
                 alerting:
                   type: boolean
-                  description: ''
-                  example: true
+                  description: 'Send enter and exit alerts for this geofence.'
+                  example: false
                 latitude:
                   type: number
-                  description: 'Must be at least -90. Must not be greater than 90.'
-                  example: 18
+                  description: 'Centre of a circular geofence. Send with `longitude` and `radius_meters`. Must be at least -90. Must not be greater than 90.'
+                  example: 41.8868
                 longitude:
                   type: number
-                  description: 'Must be at least -180. Must not be greater than 180.'
-                  example: 9
+                  description: 'Centre of a circular geofence. Send with `latitude` and `radius_meters`. Must be at least -180. Must not be greater than 180.'
+                  example: -87.6526
                 radius_meters:
                   type: number
-                  description: 'Must be at least 0.'
-                  example: 41
+                  description: 'Radius of a circular geofence, in metres. Must be at least 0.'
+                  example: 250.0
                 geojson:
                   type: object
-                  description: ''
-                  example: null
+                  description: 'A GeoJSON Polygon or MultiPolygon with closed rings, for a geofence that is not a circle. Takes the place of `latitude`, `longitude` and `radius_meters`.'
+                  example:
+                    type: Polygon
+                    coordinates:
+                      -
+                        -
+                          - -87.654
+                          - 41.886
+                        -
+                          - -87.651
+                          - 41.886
+                        -
+                          - -87.651
+                          - 41.888
+                        -
+                          - -87.654
+                          - 41.888
+                        -
+                          - -87.654
+                          - 41.886
                   properties:
                     type:
                       type: string
-                      description: 'This field is required when <code>geojson</code> is present.'
-                      example: sit
+                      description: '`Polygon` or `MultiPolygon`. This field is required when <code>geojson</code> is present.'
+                      example: Polygon
                 min_assets:
                   type: integer
-                  description: 'Must be at least 0. Must not be greater than 500.'
-                  example: 14
+                  description: 'The fewest devices expected inside at once. Must be at least 0. Must not be greater than 500.'
+                  example: 0
                 max_assets:
                   type: integer
-                  description: 'Must be at least 0. Must not be greater than 500.'
-                  example: 20
+                  description: 'The most devices expected inside at once. Must be at least 0. Must not be greater than 500.'
+                  example: 50
                 allowable_dwell_seconds:
                   type: integer
-                  description: 'Must be at least 0. Must not be greater than 43200000.'
-                  example: 12
+                  description: 'How long a device is expected to stay inside, in seconds. A longer stay counts as dwelling too long. Must be at least 0. Must not be greater than 43200000.'
+                  example: 86400
                 place_type:
                   type: string
-                  description: "A place type slug, standard or one of the account's own custom types. See the place types endpoints."
+                  description: "A place type slug, standard or one of the account's own, from `list_place_types`."
                   example: warehouse
                 ownership_type:
                   type: string
-                  description: ''
-                  example: 3pl
+                  description: "Whose place it is: the account's own, a customer's, a supplier's, a 3PL's, or public."
+                  example: owned
                   enum:
                     - owned
                     - customer
@@ -1048,12 +1121,12 @@ paths:
                     - public
                 name:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: wuvlwqnyabfxpcfnhopyoscs
+                  description: 'The geofence name. Must not be greater than 255 characters.'
+                  example: 'Chicago DC'
     delete:
       summary: 'Delete a geofence'
-      operationId: deleteAGeofence
-      description: ''
+      operationId: delete_geofence
+      description: 'Deletes a geofence from the account.'
       parameters: []
       responses:
         204:
@@ -1088,16 +1161,16 @@ paths:
       -
         in: path
         name: geofenceId
-        description: ''
-        example: 14
+        description: 'The geofence id, from `list_geofences`.'
+        example: 9150
         required: true
         schema:
           type: integer
   /v1/shipments:
     get:
       summary: 'List shipments'
-      operationId: listShipments
-      description: ''
+      operationId: list_shipments
+      description: "Lists the account's shipments, filterable by status, carrier, origin or destination geofence, and\npickup or delivery dates. Use `search` to find one by name."
       parameters:
         -
           in: query
@@ -1273,8 +1346,8 @@ paths:
         - Shipments
     post:
       summary: 'Create a shipment'
-      operationId: createAShipment
-      description: ''
+      operationId: create_shipment
+      description: "Creates a shipment as a draft. Send `device_ids` and at least two `stops` to give it its itinerary\nnow; `publish_shipment` then books it."
       parameters: []
       responses:
         201:
@@ -1324,30 +1397,31 @@ paths:
               properties:
                 name:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: mnxemjszumxk
+                  description: 'The shipment name, often the order or load number. Must not be greater than 255 characters.'
+                  example: PO-88213
                 carrier:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: wvxbxlssraeptmculjsgf
+                  description: 'The carrier moving the shipment. Must not be greater than 255 characters.'
+                  example: 'J.B. Hunt'
                 notes:
                   type: string
-                  description: ''
-                  example: in
+                  description: 'Free-text notes.'
+                  example: 'Dock 4, call ahead.'
                 asset_value:
                   type: integer
-                  description: 'Must be at least 0. Must not be greater than 4294967295.'
-                  example: 7
+                  description: 'Value of the goods, in whole dollars. Must be at least 0. Must not be greater than 4294967295.'
+                  example: 125000
                 device_ids:
                   type: array
-                  description: ''
+                  description: 'Devices that travel with the shipment, from `list_devices`. Requires `stops`.'
                   example:
-                    - 8
+                    - 48213
                   items:
                     type: integer
                 stops:
                   type: array
                   nullable: true
+                  description: 'The itinerary, in order: at least two stops, the first the origin and the last the destination. Requires `device_ids`. Leave out both to create an empty draft.'
                   items:
                     $ref: '#/components/schemas/ShipmentStopInput'
               required:
@@ -1355,8 +1429,8 @@ paths:
   '/v1/shipments/{shipmentId}':
     get:
       summary: 'Show a shipment'
-      operationId: showAShipment
-      description: ''
+      operationId: get_shipment
+      description: 'Returns one shipment with its status, devices and stops.'
       parameters: []
       responses:
         200:
@@ -1398,9 +1472,9 @@ paths:
       tags:
         - Shipments
     patch:
-      summary: 'Update shipment metadata'
-      operationId: updateShipmentMetadata
-      description: ''
+      summary: 'Update a shipment'
+      operationId: update_shipment
+      description: "Changes a shipment's name, carrier, notes or asset value. Stops and route segments have their own\nendpoints."
       parameters: []
       responses:
         200:
@@ -1450,24 +1524,24 @@ paths:
               properties:
                 name:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: kvoyqai
+                  description: 'The shipment name, often the order or load number. Must not be greater than 255 characters.'
+                  example: PO-88213
                 carrier:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: lfodgb
+                  description: 'The carrier moving the shipment. Null clears it. Must not be greater than 255 characters.'
+                  example: 'J.B. Hunt'
                 notes:
                   type: string
-                  description: ''
-                  example: accusantium
+                  description: 'Free-text notes. Null clears them.'
+                  example: 'Dock 4, call ahead.'
                 asset_value:
                   type: integer
-                  description: 'Must be at least 0. Must not be greater than 4294967295.'
-                  example: 3
+                  description: 'Value of the goods, in whole dollars. Null clears it. Must be at least 0. Must not be greater than 4294967295.'
+                  example: 125000
     delete:
-      summary: 'Soft-delete a shipment'
-      operationId: softDeleteAShipment
-      description: ''
+      summary: 'Delete a shipment'
+      operationId: delete_shipment
+      description: "Deletes a shipment. Its devices stay on the account; to keep the shipment and stop tracking it,\nuse `archive_shipment` instead."
       parameters: []
       responses:
         204:
@@ -1502,15 +1576,15 @@ paths:
       -
         in: path
         name: shipmentId
-        description: ''
-        example: 11
+        description: 'The shipment id, from `list_shipments`.'
+        example: 30744
         required: true
         schema:
           type: integer
   '/v1/shipments/{shipmentId}/publish':
     post:
       summary: 'Publish a draft shipment'
-      operationId: publishADraftShipment
+      operationId: publish_shipment
       description: "Moves draft → booked. Publishing an already-published shipment is a no-op\nand returns the current resource (safe for retries)."
       parameters: []
       responses:
@@ -1556,15 +1630,15 @@ paths:
       -
         in: path
         name: shipmentId
-        description: ''
-        example: 14
+        description: 'The shipment id, from `list_shipments`.'
+        example: 30744
         required: true
         schema:
           type: integer
   '/v1/shipments/{shipmentId}/archive':
     post:
       summary: 'Archive a shipment'
-      operationId: archiveAShipment
+      operationId: archive_shipment
       description: "Moves the shipment to `closed`, whatever its lifecycle status was. Archiving an\nalready-archived shipment is a no-op and returns the current resource (safe for\nretries). Reverse it with POST /shipments/{id}/unarchive."
       parameters: []
       responses:
@@ -1610,15 +1684,15 @@ paths:
       -
         in: path
         name: shipmentId
-        description: ''
-        example: 6
+        description: 'The shipment id, from `list_shipments`.'
+        example: 30744
         required: true
         schema:
           type: integer
   '/v1/shipments/{shipmentId}/unarchive':
     post:
       summary: 'Unarchive a shipment'
-      operationId: unarchiveAShipment
+      operationId: unarchive_shipment
       description: "Clears `closed` and returns the shipment to the status its dates imply. Unarchiving\na shipment that is not archived is a no-op and returns the current resource."
       parameters: []
       responses:
@@ -1664,16 +1738,16 @@ paths:
       -
         in: path
         name: shipmentId
-        description: ''
-        example: 8
+        description: 'The shipment id, from `list_shipments`.'
+        example: 30744
         required: true
         schema:
           type: integer
   '/v1/shipments/{shipmentId}/stops':
     get:
       summary: 'List stops for a shipment'
-      operationId: listStopsForAShipment
-      description: ''
+      operationId: list_shipment_stops
+      description: "Returns a shipment's itinerary in order. `stop_type` marks each stop as the origin, the destination\nor a stop in between."
       parameters: []
       responses:
         200:
@@ -1715,9 +1789,9 @@ paths:
       tags:
         - Shipments
     post:
-      summary: 'Create stops for a shipment (when none exist yet)'
-      operationId: createStopsForAShipmentwhenNoneExistYet
-      description: ''
+      summary: 'Create stops for a shipment'
+      operationId: create_shipment_stops
+      description: "Sets the itinerary of a shipment that has no stops yet. A shipment that already has stops is a 422;\nchange its itinerary with `replace_shipment_stops`."
       parameters: []
       responses:
         200:
@@ -1758,10 +1832,76 @@ paths:
                 $ref: '#/components/schemas/PublicApiError'
       tags:
         - Shipments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stops:
+                  type: array
+                  description: 'The itinerary, at least two stops. These fields use the upstream spelling (`type`, `center.lat`, `radius`), not the one stop reads return.'
+                  example:
+                    -
+                      sequence: 0
+                      type: geofence
+                      geofence_id: 9150
+                    -
+                      sequence: 1
+                      type: circle
+                      name: 'Chicago DC'
+                      center:
+                        lat: 41.8781
+                        lng: -87.6298
+                      radius: 250
+                  items:
+                    type: object
+                    properties:
+                      sequence:
+                        type: integer
+                        description: 'Position in the itinerary, unique within the shipment. The lowest is the origin and the highest the destination.'
+                        example: 0
+                      type:
+                        type: string
+                        description: '`geofence` stops at an existing geofence; `circle` stops within `radius` of `center`.'
+                        example: circle
+                      name:
+                        type: string
+                        description: 'Label shown for the stop.'
+                        example: 'Chicago DC'
+                      geofence_id:
+                        type: integer
+                        description: 'Required for a `geofence` stop. A geofence id from `list_geofences`.'
+                        example: 9150
+                      center:
+                        type: object
+                        description: 'Required for a `circle` stop.'
+                        example:
+                          lat: 41.8781
+                          lng: -87.6298
+                        properties:
+                          lat:
+                            type: number
+                            description: Latitude.
+                            example: 41.8781
+                          lng:
+                            type: number
+                            description: Longitude.
+                            example: -87.6298
+                      radius:
+                        type: integer
+                        description: 'Required for a `circle` stop. Radius around `center`, in metres.'
+                        example: 250
+                    required:
+                      - sequence
+                      - type
+              required:
+                - stops
     put:
-      summary: 'Sync stops for a shipment (full replace)'
-      operationId: syncStopsForAShipmentfullReplace
-      description: ''
+      summary: 'Replace stops for a shipment'
+      operationId: replace_shipment_stops
+      description: "Replaces a shipment's whole itinerary with the stops sent; a stop left out is deleted. Any change\nother than a radius also deletes the shipment's route segments."
       parameters: []
       responses:
         200:
@@ -1802,20 +1942,90 @@ paths:
                 $ref: '#/components/schemas/PublicApiError'
       tags:
         - Shipments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stops:
+                  type: array
+                  description: 'The itinerary, at least two stops. These fields use the upstream spelling (`type`, `center.lat`, `radius`), not the one stop reads return.'
+                  example:
+                    -
+                      sequence: 0
+                      type: geofence
+                      geofence_id: 9150
+                    -
+                      sequence: 1
+                      type: circle
+                      name: 'Chicago DC'
+                      center:
+                        lat: 41.8781
+                        lng: -87.6298
+                      radius: 250
+                  items:
+                    type: object
+                    properties:
+                      sequence:
+                        type: integer
+                        description: 'Position in the itinerary, unique within the shipment. The lowest is the origin and the highest the destination.'
+                        example: 0
+                      type:
+                        type: string
+                        description: '`geofence` stops at an existing geofence; `circle` stops within `radius` of `center`.'
+                        example: circle
+                      name:
+                        type: string
+                        description: 'Label shown for the stop.'
+                        example: 'Chicago DC'
+                      geofence_id:
+                        type: integer
+                        description: 'Required for a `geofence` stop. A geofence id from `list_geofences`.'
+                        example: 9150
+                      center:
+                        type: object
+                        description: 'Required for a `circle` stop.'
+                        example:
+                          lat: 41.8781
+                          lng: -87.6298
+                        properties:
+                          lat:
+                            type: number
+                            description: Latitude.
+                            example: 41.8781
+                          lng:
+                            type: number
+                            description: Longitude.
+                            example: -87.6298
+                      radius:
+                        type: integer
+                        description: 'Required for a `circle` stop. Radius around `center`, in metres.'
+                        example: 250
+                      id:
+                        type: integer
+                        description: 'Keep an existing stop, by its id from `list_shipment_stops`. Leave it out to add a new stop.'
+                        example: 81
+                    required:
+                      - sequence
+                      - type
+              required:
+                - stops
     parameters:
       -
         in: path
         name: shipmentId
-        description: ''
-        example: 1
+        description: 'The shipment id, from `list_shipments`.'
+        example: 30744
         required: true
         schema:
           type: integer
   '/v1/shipments/{shipmentId}/stops/{stopId}':
     delete:
       summary: 'Delete a stop'
-      operationId: deleteAStop
-      description: ''
+      operationId: delete_shipment_stop
+      description: "Removes one stop and the route segments that start or end at it. The other stops keep their\nsequence numbers."
       parameters: []
       responses:
         204:
@@ -1832,6 +2042,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
         429:
           description: 'The request could not be processed.'
           content:
@@ -1850,15 +2066,15 @@ paths:
       -
         in: path
         name: shipmentId
-        description: ''
-        example: 17
+        description: 'The shipment id, from `list_shipments`.'
+        example: 30744
         required: true
         schema:
           type: integer
       -
         in: path
         name: stopId
-        description: 'The stop ID.'
+        description: 'The stop id, from `list_shipment_stops`.'
         example: 81
         required: true
         schema:
@@ -1866,8 +2082,8 @@ paths:
   '/v1/shipments/{shipmentId}/routes':
     get:
       summary: 'List route segments for a shipment'
-      operationId: listRouteSegmentsForAShipment
-      description: ''
+      operationId: list_shipment_routes
+      description: "Returns a shipment's route segments: the leg between two of its stops, the corridor width around it\nand the routes it may take."
       parameters: []
       responses:
         200:
@@ -1910,8 +2126,8 @@ paths:
         - Shipments
     post:
       summary: 'Create a route segment'
-      operationId: createARouteSegment
-      description: ''
+      operationId: create_shipment_route
+      description: "Adds a route segment between two of the shipment's stops, with an optional corridor width and route\npolylines."
       parameters: []
       responses:
         200:
@@ -1952,20 +2168,62 @@ paths:
                 $ref: '#/components/schemas/PublicApiError'
       tags:
         - Shipments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from_stop_id:
+                  type: integer
+                  description: 'The stop the segment starts at, from `list_shipment_stops`.'
+                  example: 81
+                to_stop_id:
+                  type: integer
+                  description: 'The stop the segment ends at; not the same stop.'
+                  example: 82
+                corridor_width_meters:
+                  type: integer
+                  description: 'Width of the corridor around the route, in metres.'
+                  example: 500
+                route_options:
+                  type: array
+                  description: 'The routes the segment may take, each a polyline.'
+                  example:
+                    -
+                      name: 'Via I-90'
+                      encoded_polyline: _p~iF~ps|U_ulLnnqC_mqNvxq`@
+                  items:
+                    type: object
+                    properties:
+                      encoded_polyline:
+                        type: string
+                        description: 'A Google encoded polyline.'
+                        example: _p~iF~ps|U_ulLnnqC_mqNvxq`@
+                      name:
+                        type: string
+                        description: 'Label for the route.'
+                        example: 'Via I-90'
+                    required:
+                      - encoded_polyline
+              required:
+                - from_stop_id
+                - to_stop_id
     parameters:
       -
         in: path
         name: shipmentId
-        description: ''
-        example: 4
+        description: 'The shipment id, from `list_shipments`.'
+        example: 30744
         required: true
         schema:
           type: integer
   '/v1/shipments/{shipmentId}/routes/{routeId}':
     get:
       summary: 'Show a route segment'
-      operationId: showARouteSegment
-      description: ''
+      operationId: get_shipment_route
+      description: 'Returns one route segment of a shipment.'
       parameters: []
       responses:
         200:
@@ -2008,8 +2266,8 @@ paths:
         - Shipments
     patch:
       summary: 'Update a route segment'
-      operationId: updateARouteSegment
-      description: ''
+      operationId: update_shipment_route
+      description: "Changes a route segment's stops, corridor width or route options. Only the fields sent change."
       parameters: []
       responses:
         200:
@@ -2050,10 +2308,49 @@ paths:
                 $ref: '#/components/schemas/PublicApiError'
       tags:
         - Shipments
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from_stop_id:
+                  type: integer
+                  description: 'The stop the segment starts at, from `list_shipment_stops`.'
+                  example: 81
+                to_stop_id:
+                  type: integer
+                  description: 'The stop the segment ends at; not the same stop.'
+                  example: 82
+                corridor_width_meters:
+                  type: integer
+                  description: 'Width of the corridor around the route, in metres.'
+                  example: 500
+                route_options:
+                  type: array
+                  description: 'The routes the segment may take, each a polyline.'
+                  example:
+                    -
+                      name: 'Via I-90'
+                      encoded_polyline: _p~iF~ps|U_ulLnnqC_mqNvxq`@
+                  items:
+                    type: object
+                    properties:
+                      encoded_polyline:
+                        type: string
+                        description: 'A Google encoded polyline.'
+                        example: _p~iF~ps|U_ulLnnqC_mqNvxq`@
+                      name:
+                        type: string
+                        description: 'Label for the route.'
+                        example: 'Via I-90'
+                    required:
+                      - encoded_polyline
     delete:
       summary: 'Delete a route segment'
-      operationId: deleteARouteSegment
-      description: ''
+      operationId: delete_shipment_route
+      description: 'Deletes a route segment. The stops it joined are untouched.'
       parameters: []
       responses:
         204:
@@ -2065,6 +2362,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/PublicApiError'
         404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
           description: 'The request could not be processed.'
           content:
             application/json:
@@ -2088,15 +2391,15 @@ paths:
       -
         in: path
         name: shipmentId
-        description: ''
-        example: 11
+        description: 'The shipment id, from `list_shipments`.'
+        example: 30744
         required: true
         schema:
           type: integer
       -
         in: path
         name: routeId
-        description: 'The route segment ID.'
+        description: 'The route segment id, from `list_shipment_routes`.'
         example: 12
         required: true
         schema:
@@ -2104,7 +2407,7 @@ paths:
   /v1/users:
     get:
       summary: 'List users'
-      operationId: listUsers
+      operationId: list_users
       description: "Every row carries the account-scoped permission structure. permissions.device_ids\nand permissions.group_ids are the explicit direct grants only, not the resolved\nfleet the user can see."
       parameters:
         -
@@ -2186,7 +2489,7 @@ paths:
   /v1/users/invite:
     post:
       summary: 'Invite a user'
-      operationId: inviteAUser
+      operationId: invite_user
       description: "Creates the account relation and emails the invitation. An email that already\nbelongs to a user on another account is attached to this one; an email that is\nalready a member here is a 409 — changing a teammate is PATCH /users/{id}."
       parameters: []
       responses:
@@ -2203,6 +2506,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/PublicApiError'
         404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        409:
           description: 'The request could not be processed.'
           content:
             application/json:
@@ -2237,16 +2546,22 @@ paths:
               properties:
                 email:
                   type: string
-                  description: 'Must be a valid email address. Must not be greater than 255 characters.'
-                  example: hardy88@example.net
+                  description: 'Where the invitation is sent. Must be a valid email address. Must not be greater than 255 characters.'
+                  example: dana@example.com
                 permissions:
                   type: object
-                  description: ''
-                  example: []
+                  description: 'What the new teammate can do and which devices they can see.'
+                  example:
+                    role: viewer
+                    full_device_access: false
+                    device_ids:
+                      - 48213
+                    group_ids:
+                      - 214
                   properties:
                     role:
                       type: string
-                      description: ''
+                      description: "The teammate's role on the account."
                       example: viewer
                       enum:
                         - admin
@@ -2255,20 +2570,20 @@ paths:
                         - viewer
                     full_device_access:
                       type: boolean
-                      description: ''
-                      example: true
+                      description: 'See every device on the account. Off, they see only the devices and groups granted below.'
+                      example: false
                     device_ids:
                       type: array
-                      description: ''
+                      description: 'Devices they can see, from `list_devices`.'
                       example:
-                        - 14
+                        - 48213
                       items:
                         type: integer
                     group_ids:
                       type: array
-                      description: ''
+                      description: 'Device groups whose devices they can see, from `list_groups`.'
                       example:
-                        - 19
+                        - 214
                       items:
                         type: integer
               required:
@@ -2277,8 +2592,8 @@ paths:
   '/v1/users/{userId}':
     get:
       summary: 'Show a user'
-      operationId: showAUser
-      description: ''
+      operationId: get_user
+      description: 'Returns one teammate with their role and their direct device and group grants.'
       parameters: []
       responses:
         200:
@@ -2321,7 +2636,7 @@ paths:
         - Users
     delete:
       summary: 'Remove a user from the account'
-      operationId: removeAUserFromTheAccount
+      operationId: remove_user
       description: "Detaches the teammate and their grants. The user record itself survives — they may\nbelong to other accounts. Removing the account's only admin is a 409."
       parameters: []
       responses:
@@ -2334,6 +2649,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/PublicApiError'
         404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        409:
           description: 'The request could not be processed.'
           content:
             application/json:
@@ -2357,16 +2678,16 @@ paths:
       -
         in: path
         name: userId
-        description: ''
-        example: 13
+        description: 'The user id, from `list_users`.'
+        example: 5532
         required: true
         schema:
           type: integer
   /v1/container-types:
     get:
       summary: 'List container types'
-      operationId: listContainerTypes
-      description: ''
+      operationId: list_container_types
+      description: "Lists the account's container types, the labels for the returnable containers its devices travel\nin. Only on accounts with returnable containers; elsewhere every container type call is a 404."
       parameters:
         -
           in: query
@@ -2405,15 +2726,87 @@ paths:
             type: integer
             description: 'Page number, starting at 1. Must be at least 1.'
             example: 1
-      responses: {  }
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - 'Container types'
     post:
       summary: 'Create a container type'
-      operationId: createAContainerType
+      operationId: create_container_type
       description: 'Names are free text; a name that already exists creates a second type.'
       parameters: []
-      responses: {  }
+      responses:
+        201:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - 'Container types'
       requestBody:
@@ -2425,25 +2818,97 @@ paths:
               properties:
                 name:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: nnswkdczmiyuox
+                  description: 'The container type name. Must not be greater than 255 characters.'
+                  example: 'Returnable pallet'
               required:
                 - name
   '/v1/container-types/{containerTypeId}':
     get:
       summary: 'Show a container type'
-      operationId: showAContainerType
-      description: ''
+      operationId: get_container_type
+      description: 'Returns one container type.'
       parameters: []
-      responses: {  }
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - 'Container types'
     patch:
       summary: 'Rename a container type'
-      operationId: renameAContainerType
+      operationId: update_container_type
       description: 'Devices reference the type by id, so they carry the new name with them.'
       parameters: []
-      responses: {  }
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - 'Container types'
       requestBody:
@@ -2455,32 +2920,58 @@ paths:
               properties:
                 name:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: oxlwtqi
+                  description: 'The container type name. Must not be greater than 255 characters.'
+                  example: 'Returnable pallet'
               required:
                 - name
     delete:
       summary: 'Delete a container type'
-      operationId: deleteAContainerType
+      operationId: delete_container_type
       description: 'Allowed while in use: the devices carrying it are kept and lose their type.'
       parameters: []
-      responses: {  }
+      responses:
+        204:
+          description: 'Deleted successfully.'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - 'Container types'
     parameters:
       -
         in: path
         name: containerTypeId
-        description: ''
-        example: est
+        description: 'The container type id, from `list_container_types`.'
+        example: 7
         required: true
         schema:
-          type: string
+          type: integer
   /v1/events:
     get:
       summary: 'List account events'
-      operationId: listAccountEvents
-      description: "Windowed on event_after / event_before (event_at). Filterable by device_id,\ngeofence_id, shipment_id, and event_type."
+      operationId: list_events
+      description: "Returns the account's event feed across every device (geofence enters and exits, alarms, shipment\nevents) within a time window, 24 hours by default. Filter by device, geofence, shipment or event\ntype; a geofence's enter and exit history is this feed filtered by `geofence_id`."
       parameters:
         -
           in: query
@@ -2579,14 +3070,50 @@ paths:
               - geofence-exit
             items:
               type: string
-      responses: {  }
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - Events
   /v1/groups:
     get:
       summary: 'List groups'
-      operationId: listGroups
-      description: ''
+      operationId: list_groups
+      description: "Lists the account's device groups. A group's devices are listed with `list_group_members`."
       parameters:
         -
           in: query
@@ -2666,7 +3193,7 @@ paths:
         - Groups
     post:
       summary: 'Create a group'
-      operationId: createAGroup
+      operationId: create_group
       description: "A group is created empty; members are added one at a time through\nPOST /groups/{id}/members."
       parameters: []
       responses:
@@ -2717,15 +3244,15 @@ paths:
               properties:
                 name:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: jgebppto
+                  description: 'The group name. Must not be greater than 255 characters.'
+                  example: 'Midwest fleet'
               required:
                 - name
   '/v1/groups/{groupId}':
     get:
       summary: 'Show a group'
-      operationId: showAGroup
-      description: ''
+      operationId: get_group
+      description: 'Returns one device group. Its devices are listed with `list_group_members`.'
       parameters: []
       responses:
         200:
@@ -2768,7 +3295,7 @@ paths:
         - Groups
     patch:
       summary: 'Update a group'
-      operationId: updateAGroup
+      operationId: update_group
       description: 'A member list in the body is a 422: membership is incremental.'
       parameters: []
       responses:
@@ -2819,13 +3346,13 @@ paths:
               properties:
                 name:
                   type: string
-                  description: 'Must not be greater than 255 characters.'
-                  example: qdrveeldmkvshwejekz
+                  description: 'The group name. Must not be greater than 255 characters.'
+                  example: 'Midwest fleet'
               required:
                 - name
     delete:
       summary: 'Delete a group'
-      operationId: deleteAGroup
+      operationId: delete_group
       description: 'The devices in it are untouched — a group is a container, not an owner.'
       parameters: []
       responses:
@@ -2861,15 +3388,15 @@ paths:
       -
         in: path
         name: groupId
-        description: ''
-        example: 17
+        description: 'The group id, from `list_groups`.'
+        example: 214
         required: true
         schema:
           type: integer
   '/v1/groups/{groupId}/members':
     get:
       summary: "List a group's members"
-      operationId: listAGroupsMembers
+      operationId: list_group_members
       description: 'Phase 1 groups are device-only, so every member carries type "device".'
       parameters:
         -
@@ -2933,7 +3460,7 @@ paths:
         - Groups
     post:
       summary: 'Add a member'
-      operationId: addAMember
+      operationId: add_group_member
       description: 'Incremental. Adding a device that is already a member is still a 200.'
       parameters: []
       responses:
@@ -2984,23 +3511,23 @@ paths:
               properties:
                 member_id:
                   type: integer
-                  description: ''
-                  example: 8
+                  description: 'The device to add, from `list_devices`.'
+                  example: 48213
               required:
                 - member_id
     parameters:
       -
         in: path
         name: groupId
-        description: ''
-        example: 19
+        description: 'The group id, from `list_groups`.'
+        example: 214
         required: true
         schema:
           type: integer
   '/v1/groups/{groupId}/members/{memberId}':
     delete:
       summary: 'Remove a member'
-      operationId: removeAMember
+      operationId: remove_group_member
       description: 'Removing a device that was not a member is still a 204.'
       parameters: []
       responses:
@@ -3036,23 +3563,23 @@ paths:
       -
         in: path
         name: groupId
-        description: ''
-        example: 17
+        description: 'The group id, from `list_groups`.'
+        example: 214
         required: true
         schema:
           type: integer
       -
         in: path
         name: memberId
-        description: ''
-        example: dolor
+        description: 'The id of a device in the group, from `list_group_members`.'
+        example: 48213
         required: true
         schema:
-          type: string
+          type: integer
   /v1/place-types:
     get:
       summary: 'List place types'
-      operationId: listPlaceTypes
+      operationId: list_place_types
       description: "The standard types first, then the account's custom types, each group by name."
       parameters:
         -
@@ -3075,15 +3602,87 @@ paths:
             type: integer
             description: 'Page number, starting at 1. Must be at least 1.'
             example: 1
-      responses: {  }
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiCollection'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - 'Place types'
     post:
       summary: 'Create a custom place type'
-      operationId: createACustomPlaceType
-      description: ''
+      operationId: create_place_type
+      description: "Adds a place type of the account's own under a standard parent, so geofences can use its slug as\ntheir `place_type`."
       parameters: []
-      responses: {  }
+      responses:
+        201:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - 'Place types'
       requestBody:
@@ -3112,18 +3711,90 @@ paths:
   '/v1/place-types/{placeTypeSlug}':
     get:
       summary: 'Show a place type'
-      operationId: showAPlaceType
-      description: ''
+      operationId: get_place_type
+      description: 'Returns one place type, standard or custom.'
       parameters: []
-      responses: {  }
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - 'Place types'
     patch:
       summary: 'Update a custom place type'
-      operationId: updateACustomPlaceType
+      operationId: update_place_type
       description: 'Geofences follow a rename and a new parent. Standard types cannot be changed.'
       parameters: []
-      responses: {  }
+      responses:
+        200:
+          description: 'Successful response.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiResource'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        422:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - 'Place types'
       requestBody:
@@ -3147,17 +3818,43 @@ paths:
                   example: demo_location
     delete:
       summary: 'Delete a custom place type'
-      operationId: deleteACustomPlaceType
+      operationId: delete_place_type
       description: 'Geofences using it move to its parent type. Standard types cannot be deleted.'
       parameters: []
-      responses: {  }
+      responses:
+        204:
+          description: 'Deleted successfully.'
+        401:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        404:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        429:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        502:
+          description: 'The request could not be processed.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
       tags:
         - 'Place types'
     parameters:
       -
         in: path
         name: placeTypeSlug
-        description: "A standard slug or one of the account's custom slugs."
+        description: 'A place type slug, from `list_place_types`. Standard types can be read but not changed or deleted.'
         example: pediatric_clinic
         required: true
         schema:
@@ -3240,33 +3937,45 @@ components:
         sequence:
           type: integer
           minimum: 0
+          description: 'Position in the itinerary. Unique within the shipment; the lowest is the origin and the highest the destination.'
           example: 0
         location_type:
           type: string
           enum:
             - circle
             - geofence
+          description: '`geofence` stops at an existing geofence; `circle` stops within `radius_meters` of `center`.'
+          example: circle
         name:
           type: string
           nullable: true
+          description: 'Label shown for the stop.'
+          example: 'Chicago DC'
         geofence_id:
           type: integer
           nullable: true
+          description: 'Required for a `geofence` stop. A geofence id from `list_geofences`.'
+          example: null
         center:
           type: object
           nullable: true
+          description: 'Required for a `circle` stop.'
           properties:
             latitude:
               type: number
               format: double
+              example: 41.8781
             longitude:
               type: number
               format: double
+              example: -87.6298
         radius_meters:
           type: integer
           minimum: 50
           maximum: 10000
           nullable: true
+          description: 'Required for a `circle` stop. Radius around `center`, in metres.'
+          example: 250
 security:
   -
     default: []
