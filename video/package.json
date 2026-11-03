@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "prepare-shots": "node scripts/prepare-shots.mjs",
-    "studio": "remotion studio src/index.ts",
-    "render": "remotion render src/index.ts Setup out/gpx-mcp-setup.mp4",
-    "render:gif": "remotion render src/index.ts Setup out/gpx-mcp-setup.gif --codec=gif --every-nth-frame=2 --scale=0.5"
+    "music": "node scripts/make-music.mjs 60.67",
+    "studio": "npm run music && remotion studio src/index.ts",
+    "render": "npm run music && remotion render src/index.ts Setup out/gpx-mcp-setup.mp4",
+    "render:gif": "remotion render src/index.ts Setup out/gpx-mcp-setup.gif --codec=gif --every-nth-frame=2 --scale=0.5 --muted"
   },
   "dependencies": {
     "@remotion/cli": "4.0.535",

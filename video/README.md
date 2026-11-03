@@ -11,6 +11,10 @@ npm run render:gif   # out/gpx-mcp-setup.gif, 960x540, 15 fps
 npm run studio       # preview and scrub in the browser
 ```
 
+## Music
+
+The background music is synthesized by `scripts/make-music.mjs` (electric piano, walking bass, vibraphone, brushes), so there is no licence or attribution to track. `npm run render` regenerates it at the video's length; `public/music.wav` is not committed. If you change scene lengths in `src/Setup.tsx`, update the seconds in the `music` script to match.
+
 ## Updating a screenshot
 
 When the app's Settings or tracker pages change, retake the shot at a 1509x812 (settings) or 1384x797 (tracker page) browser viewport, save the raw files with the names `prepare-shots.mjs` expects into a folder outside the repository, and run:

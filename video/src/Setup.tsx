@@ -1,5 +1,5 @@
 import React from 'react';
-import { Series } from 'remotion';
+import { Audio, Series, staticFile } from 'remotion';
 import { Fade } from './components';
 import { ClaudeCode, CopyToken, CreateToken, DesktopConfig, Intro, NameToken, OpenApiAccess, Outro, StepOne, StepTwo, Teaser, TryIt, Writes } from './scenes';
 
@@ -22,6 +22,8 @@ export const SCENES: [React.FC, number][] = [
 export const TOTAL_FRAMES = SCENES.reduce((sum, [, d]) => sum + d, 0);
 
 export const Setup: React.FC = () => (
+  <>
+  <Audio src={staticFile('music.wav')} volume={0.3} />
   <Series>
     {SCENES.map(([Scene, duration], i) => (
       <Series.Sequence key={i} durationInFrames={duration}>
@@ -31,4 +33,5 @@ export const Setup: React.FC = () => (
       </Series.Sequence>
     ))}
   </Series>
+  </>
 );
