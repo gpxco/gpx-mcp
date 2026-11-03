@@ -1,6 +1,6 @@
 {
   "name": "@gpxco/mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for the GPX Public API v1. Connect Claude, Cursor or any MCP client to your GPX account.",
   "license": "MIT",
   "author": "GPX <support@gpx.co>",
@@ -9,12 +9,23 @@
     "type": "git",
     "url": "git+https://github.com/gpxco/gpx-mcp.git"
   },
-  "keywords": ["mcp", "model-context-protocol", "gpx", "gps", "tracking", "shipments"],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "gpx",
+    "gps",
+    "tracking",
+    "shipments"
+  ],
   "type": "module",
   "bin": {
     "gpx-mcp": "dist/index.js"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=20.10"
   },
