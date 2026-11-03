@@ -38,7 +38,7 @@ Releases are published to npm as [`@gpxco/mcp`](https://www.npmjs.com/package/@g
    npm stage approve <stage-id>
    ```
 
-   `npm stage download` saves the tarball for a look inside. If anything is off, `npm stage reject <stage-id>` removes it. The package's page on npmjs.com shows staged versions too.
+   A freshly staged version shows `status: validating` while npm's automated review runs; approving it before that finishes fails with `409 … automated review hasn't finished`, so wait a few minutes and try again. `npm stage download` saves the tarball for a look inside. If anything is off, `npm stage reject <stage-id>` removes it. The package's page on npmjs.com shows staged versions too.
 7. Check it: `npm view @gpxco/mcp dist-tags` shows the new version, and `npx -y @gpxco/mcp@<version>` starts and waits on stdin. Stop it with Ctrl-C.
 
 The tag a version is staged with (`latest` or `next`) cannot be changed. To change it, reject the staged version and run the workflow again.

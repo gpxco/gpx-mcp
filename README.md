@@ -44,8 +44,16 @@ Add the same `mcpServers` block as for Claude Desktop to `~/.cursor/mcp.json` (a
 | Variable | Required | What it does |
 |---|---|---|
 | `GPX_API_TOKEN` | yes | Your API token. Sent as `Authorization: Bearer`. |
-| `GPX_MCP_ALLOW_WRITES` | no | Set to `1` to add the tools that create, change, archive or delete data. Off by default. |
+| `GPX_MCP_ALLOW_WRITES` | no | Set to `"1"` to add the tools that create, change, archive or delete data. Off by default. |
 | `GPX_API_BASE_URL` | no | Defaults to `https://api.gpx.co`. Use `https://api.staging.gpx.co` for staging. |
+
+Every value in `env` must be a quoted string, `"1"` and not `1`. Claude Code skips a server whose config has a number there ("expected string, received number"). To turn writes on:
+
+```json
+"env": { "GPX_API_TOKEN": "gpx_live_...", "GPX_MCP_ALLOW_WRITES": "1" }
+```
+
+In Claude Code: `claude mcp add gpx --env GPX_API_TOKEN=gpx_live_... --env GPX_MCP_ALLOW_WRITES=1 -- npx -y @gpxco/mcp`.
 
 **About writes.** An API token can do anything in your account; there are no read-only tokens yet. `GPX_MCP_ALLOW_WRITES` is the only thing that keeps the assistant from changing data, so leave it off unless you need it, and review what the assistant proposes before you approve a write tool.
 
